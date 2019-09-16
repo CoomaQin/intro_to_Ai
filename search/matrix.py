@@ -10,8 +10,8 @@ def generate_maze(p, dim):
     maze = np.zeros([dim, dim], dtype=int)
     for i in range(dim - 1):
         for j in range(dim - 1):
-            r = np.random.random_sample()
-            if (r < p):
+            rv = np.random.random_sample()
+            if (rv < p):
                 maze[i, j] = 2
             else:
                 maze[i, j] = 0
