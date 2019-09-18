@@ -1,6 +1,5 @@
 from tkinter import *
 from matrix import generate_maze
-import numpy as np
 
 
 def draw_grid(board, colors, startx=50, starty=50, cellwidth=50):

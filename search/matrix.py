@@ -17,5 +17,5 @@ def generate_maze(p, dim):
                 maze[i, j] = 0
     # the start cell and the end cell
     maze[0, 0] = 0
-    maze[dim-1, dim-1] = 0
+    maze[dim-1, dim-1] = 4
     return maze
