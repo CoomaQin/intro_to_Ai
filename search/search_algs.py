@@ -2,25 +2,75 @@ from collections import deque
 from queue import PriorityQueue
 
 
+#BFS Search
 def BFS(m):
     searched = []
     neighbor = []
     fringe = deque()
+    success = False
     dim = len(m)
     fringe.append([0, 0])
     while fringe:
+        #treat fringe as a queue
         tmp = fringe.popleft()
         if tmp not in searched:
             searched.append(tmp)
             if m[tmp[0], tmp[1]] == 4:
                 # print('111')
+                success = True
                 break
-            update(neighbor, tmp, dim)
+            updateDown(neighbor, tmp, dim)
             for cell in neighbor:
                 if m[cell[0], cell[1]] == 0 or m[cell[0], cell[1]] == 4:
                     fringe.append(cell)
             m[tmp[0], tmp[1]] = 1
-    return m
+    return m, success
+
+#BFS both directions Search
+def BIBFS(m):
+    searchedA = []
+    searchedB = []
+    neighborA = []
+    neighborB = []
+    fringeA = deque()
+    fringeB = deque()
+    success = False
+    dim = len(m)
+    fringeA.append([0, 0])
+    fringeB.append([dim-1, dim-1])
+    # while we can move from both sides
+    while len(fringeA) > 0 and len(fringeB) > 0:
+        # treat fringe as a queue and get element from forw and backward
+        tmpA = fringeA.popleft()
+        tmpB = fringeB.popleft()
+        if tmpA not in searchedA:
+            #if we stumble upon the an element that's not in A but is marked (by B) we connected
+            if m[tmpA[0], tmpA[1]] == 1:
+                success = True
+                break
+            searchedA.append(tmpA)
+            #add adjacent cells for forward
+            updateDown(neighborA, tmpA, dim)
+            for cell in neighborA:
+                if m[cell[0], cell[1]] == 0 or m[cell[0], cell[1]] == 4:
+                    fringeA.append(cell)
+            #marked visited
+            m[tmpA[0], tmpA[1]] = 1
+        if tmpB not in searchedB:
+            # if we stumble upon the an element that's not in B but is marked (by A) we connected
+            if m[tmpB[0], tmpB[1]] == 1:
+                success = True
+                break
+            searchedB.append(tmpB)
+            #add adjacent cells for backward
+            updateUp(neighborB, tmpB, dim)
+            for cell in neighborB:
+                if m[cell[0], cell[1]] == 0 or m[cell[0], cell[1]] == 4:
+                    fringeB.append(cell)
+            #marked visited
+            m[tmpB[0], tmpB[1]] = 1
+    return m, success
+
 
 
 def DFS(m):
@@ -37,24 +87,34 @@ def DFS(m):
             if m[tmp[0], tmp[1]] == 4:
                 success = True
                 break
-            update(neighbor, tmp, dim)
+            updateDown(neighbor, tmp, dim)
             for cell in neighbor:
+                print(cell)
                 if m[cell[0], cell[1]] == 0 or m[cell[0], cell[1]] == 4:
                     fringe.append(cell)
             m[tmp[0], tmp[1]] = 1
     return m, success
 
 
-def update(neighbor, index, size):
+def updateUp(neighbor, index, size):
+    #if index[1] != size - 1:
+    #    neighbor.append([index[0], index[1] + 1])
+    #if index[0] != size - 1:
+    #   neighbor.append([index[0] + 1, index[1]])
+    if index[0] != 0:
+        neighbor.append([index[0] - 1, index[1]])
+    if index[1] != 0:
+        neighbor.append([index[0], index[1] - 1])
+
+def updateDown(neighbor, index, size):
     if index[1] != size - 1:
         neighbor.append([index[0], index[1] + 1])
     if index[0] != size - 1:
         neighbor.append([index[0] + 1, index[1]])
-    # if index[0] != 0:
-    #     neighbor.append([index[0] - 1, index[1]])
-    # if index[1] != 0:
-    #     neighbor.append([index[0], index[1] - 1])
-
+    #if index[0] != 0:
+    #    neighbor.append([index[0] - 1, index[1]])
+    #if index[1] != 0:
+    #    neighbor.append([index[0], index[1] - 1])
 
 def AStar(m):
     neighbor = []
