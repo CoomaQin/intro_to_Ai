@@ -1,6 +1,8 @@
 from tkinter import *
 from matrix import generate_maze
 
+from search.search_algs import *
+
 
 def draw_grid(board, colors, startx=50, starty=50, cellwidth=50):
     width = 2 * startx + len(board) * cellwidth
@@ -20,7 +22,8 @@ def draw_grid(board, colors, startx=50, starty=50, cellwidth=50):
 
 
 def reflash():
-    ran_board = generate_maze(0.2, 15)
+    ran_board = generate_maze(0.2, 100)
+    print(BFS(ran_board)[1])
     draw_grid(ran_board, colors)
 
 
