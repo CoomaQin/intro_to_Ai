@@ -180,7 +180,7 @@ def AStar(m, param):
     priority = 0
     success = False
     dim = len(m)
-    fringe.put((heuristic([0, 0], [dim, dim]), [0, 0]))
+    fringe.put((heuristic([0, 0], [dim, dim], param), [0, 0]))
     while fringe:
         _, tmp = fringe.get()
         if m[tmp[0], tmp[1]] == 4:

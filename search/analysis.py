@@ -38,7 +38,6 @@ def maze_short_path(maze_matrix):
 #         rv = np.random.random_sample()
 
 
-
 mz = generate_maze(0.2, 1000)
 mz, _ = AStar(mz, 'euclid')
 print(len(mz[mz == 1]))
