@@ -3,8 +3,15 @@ from collections import deque
 from queue import PriorityQueue
 
 
-A = np.zeros([4, 4])
-A[2,2]=1
-A[3,3]=1
+q = PriorityQueue()
 
-print(np.argwhere(A==1))
+q.put((2, [1, 1]))
+q.put((1, [2, 2]))
+q.put((3, 'sleep'))
+
+_, a = q.get()
+
+g = {"[0, 0]": 0}
+
+print(g[[0, 0]])
+

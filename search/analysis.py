@@ -1,4 +1,4 @@
-from search_algs import DFS, BFS
+from search_algs import DFS, BFS, AStar
 # from grid_draw import draw_grid
 from matrix import generate_maze
 import networkx as nx
@@ -28,7 +28,9 @@ def maze_short_path(maze_matrix):
     return nx.shortest_path(G, source=0, target=N - 1)[-1] + 1
 
 
-mz = generate_maze(0.2, 5)
+mz = generate_maze(0.2, 1000)
 mz, _ = DFS(mz)
-print(maze_short_path(mz))
-print(maze_solvability(0.3, 100, 100))
+print(len(mz[mz == 1]))
+print(mz)
+# print(maze_short_path(mz))
+# print(maze_solvability(0.3, 100, 100))
