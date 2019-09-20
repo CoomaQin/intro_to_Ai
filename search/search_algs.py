@@ -76,7 +76,6 @@ def BIBFS(m):
 
 def DFS(m):
     searched = []
-    neighbor = []
     fringe = []
     success = False
     dim = len(m)
@@ -88,23 +87,27 @@ def DFS(m):
             if m[tmp[0], tmp[1]] == 4:
                 success = True
                 break
-            updateDown(neighbor, tmp, dim)
-            for cell in neighbor:
-                if m[cell[0], cell[1]] == 0 or m[cell[0], cell[1]] == 4:
-                    fringe.append(cell)
+            if tmp[0] != 0 and (m[tmp[0] - 1][tmp[1]] == 0 or m[tmp[0] - 1][tmp[1]] == 4):
+                fringe.append([tmp[0] - 1, tmp[1]])
+            if tmp[1] != 0 and (m[tmp[0]][tmp[1] - 1] == 0 or m[tmp[0]][tmp[1] - 1] == 4):
+                fringe.append([tmp[0], tmp[1] - 1])
+            if tmp[1] != dim - 1 and (m[tmp[0]][tmp[1] + 1] == 0 or m[tmp[0]][tmp[1] + 1] == 4):
+                fringe.append([tmp[0], tmp[1] + 1])
+            if tmp[0] != dim - 1 and (m[tmp[0] + 1][tmp[1]] == 0 or m[tmp[0] + 1][tmp[1]] == 4):
+                fringe.append([tmp[0] + 1, tmp[1]])
             m[tmp[0], tmp[1]] = 1
     return m, success
 
 
 def updateUp(neighbor, index, size):
-    # if index[1] != size - 1:
-    #    neighbor.append([index[0], index[1] + 1])
-    # if index[0] != size - 1:
-    #   neighbor.append([index[0] + 1, index[1]])
     if index[0] != 0:
         neighbor.append([index[0] - 1, index[1]])
     if index[1] != 0:
         neighbor.append([index[0], index[1] - 1])
+    if index[1] != size - 1:
+        neighbor.append([index[0], index[1] + 1])
+    if index[0] != size - 1:
+        neighbor.append([index[0] + 1, index[1]])
 
 
 def updateDown(neighbor, index, size):
@@ -112,10 +115,61 @@ def updateDown(neighbor, index, size):
         neighbor.append([index[0], index[1] + 1])
     if index[0] != size - 1:
         neighbor.append([index[0] + 1, index[1]])
-    # if index[0] != 0:
-    #    neighbor.append([index[0] - 1, index[1]])
-    # if index[1] != 0:
-    #    neighbor.append([index[0], index[1] - 1])
+    if index[0] != 0:
+        neighbor.append([index[0] - 1, index[1]])
+    if index[1] != 0:
+        neighbor.append([index[0], index[1] - 1])
+
+
+# experimental for a more guided dfs
+def updateDFS(neighbor, index, size):
+    # left top quadrant
+    if ((index[0] < size / 2 - 1 and index[1] < size / 2 - 1)):
+        # prioritize moving right then down
+        if index[0] != size - 1:
+            neighbor.append([index[0] + 1, index[1]])
+        if index[1] != size - 1:
+            neighbor.append([index[0], index[1] + 1])
+        if index[0] != 0:
+            neighbor.append([index[0] - 1, index[1]])
+        if index[1] != 0:
+            neighbor.append([index[0], index[1] - 1])
+    # right top quadrant
+    else:
+        if (index[0] >= size / 2 - 1 and index[1] < size / 2 - 1):
+            # prioritize moving down then right
+            if index[1] != size - 1:
+                neighbor.append([index[0], index[1] + 1])
+            if index[0] != size - 1:
+                neighbor.append([index[0] + 1, index[1]])
+            if index[0] != 0:
+                neighbor.append([index[0] - 1, index[1]])
+            if index[1] != 0:
+                neighbor.append([index[0], index[1] - 1])
+        # left bottom quad
+        else:
+            if (index[0] < size / 2 - 1 and index[1] >= size / 2 - 1):
+                # prioritize moving right then down
+                if index[0] != size - 1:
+                    neighbor.append([index[0] + 1, index[1]])
+                if index[1] != size - 1:
+                    neighbor.append([index[0], index[1] + 1])
+                if index[0] != 0:
+                    neighbor.append([index[0] - 1, index[1]])
+                if index[1] != 0:
+                    neighbor.append([index[0], index[1] - 1])
+            # right bot
+            else:
+                if (index[0] >= size / 2 - 1 and index[1] >= size / 2 - 1):
+                    # prioritize moving down then right
+                    if index[0] != size - 1:
+                        neighbor.append([index[0] + 1, index[1]])
+                    if index[1] != size - 1:
+                        neighbor.append([index[0], index[1] + 1])
+                    if index[0] != 0:
+                        neighbor.append([index[0] - 1, index[1]])
+                    if index[1] != 0:
+                        neighbor.append([index[0], index[1] - 1])
 
 
 def AStar(m, param):
@@ -145,4 +199,4 @@ def heuristic(start_idx, goal_idx, param):
     if param == 'manhanttan':
         return goal_idx[0] - start_idx[0] + goal_idx[1] - start_idx[0]
     if param == 'euclid':
-        return np.sqrt((goal_idx[0] + start_idx[0])^2 + (goal_idx[1] - start_idx[0])^2)
+        return np.sqrt((goal_idx[0] + start_idx[0]) ^ 2 + (goal_idx[1] - start_idx[0]) ^ 2)

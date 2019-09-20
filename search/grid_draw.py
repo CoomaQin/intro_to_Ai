@@ -4,7 +4,7 @@ from matrix import generate_maze
 from search.search_algs import *
 
 
-def draw_grid(board, colors, startx=50, starty=50, cellwidth=50):
+def draw_grid(board, colors, startx=20, starty=20, cellwidth=20):
     width = 2 * startx + len(board) * cellwidth
     height = 2 * starty + len(board) * cellwidth
     canvas.config(width=width, height=height)
@@ -12,8 +12,8 @@ def draw_grid(board, colors, startx=50, starty=50, cellwidth=50):
         for j in range(len(board)):
             index = board[i][j]
             color = colors[index]
-            cellx = startx + i * 50
-            celly = starty + j * 50
+            cellx = startx + i * 20
+            celly = starty + j * 20
             canvas.create_rectangle(cellx, celly, cellx + cellwidth, celly + cellwidth,
                                     fill=color, outline="black")
     canvas.create_text([startx + 20, starty + 20], text='s')
@@ -22,8 +22,8 @@ def draw_grid(board, colors, startx=50, starty=50, cellwidth=50):
 
 
 def reflash():
-    ran_board = generate_maze(0.2, 100)
-    print(BFS(ran_board)[1])
+    ran_board = generate_maze(0.3, 70)
+    print(DFS(ran_board)[1])
     draw_grid(ran_board, colors)
 
 
