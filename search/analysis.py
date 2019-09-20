@@ -28,8 +28,19 @@ def maze_short_path(maze_matrix):
     return nx.shortest_path(G, source=0, target=N - 1)[-1] + 1
 
 
+# def hard_maze(maze, p_, search):
+#     count = 0
+#     m, _ = search(maze)
+#     count = len(m[m == 1])
+#     zeros = np.where(m == 0)
+#     for i in range(len(zeros)):
+#
+#         rv = np.random.random_sample()
+
+
+
 mz = generate_maze(0.2, 1000)
-mz, _ = DFS(mz)
+mz, _ = AStar(mz, 'euclid')
 print(len(mz[mz == 1]))
 print(mz)
 # print(maze_short_path(mz))

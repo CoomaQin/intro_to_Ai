@@ -175,6 +175,7 @@ def updateDFS(neighbor, index, size):
 def AStar(m, param):
     neighbor = []
     fringe = PriorityQueue()
+    # keep g values in a dictionary
     g = {"[0, 0]": 0}
     priority = 0
     success = False
@@ -196,7 +197,7 @@ def AStar(m, param):
 
 
 def heuristic(start_idx, goal_idx, param):
-    if param == 'manhanttan':
+    if param == 'manhattan':
         return goal_idx[0] - start_idx[0] + goal_idx[1] - start_idx[0]
     if param == 'euclid':
         return np.sqrt((goal_idx[0] + start_idx[0]) ^ 2 + (goal_idx[1] - start_idx[0]) ^ 2)
