@@ -1,5 +1,6 @@
 from search_algs import DFS, BFS, AStar
 # from grid_draw import draw_grid
+from local_search import genetic
 from matrix import generate_maze
 import networkx as nx
 import numpy as np
@@ -28,19 +29,13 @@ def maze_short_path(maze_matrix):
     return nx.shortest_path(G, source=0, target=N - 1)[-1] + 1
 
 
-# def hard_maze(maze, p_, search):
-#     count = 0
-#     m, _ = search(maze)
-#     count = len(m[m == 1])
-#     zeros = np.where(m == 0)
-#     for i in range(len(zeros)):
-#
-#         rv = np.random.random_sample()
+p = genetic(30, 0.1, 100, 20, DFS, 0.1)
+for i in p:
+    print(i.hardness)
 
-
-mz = generate_maze(0.2, 1000)
-mz, _ = AStar(mz, 'euclid')
-print(len(mz[mz == 1]))
-print(mz)
+# mz = generate_maze(0.2, 1000)
+# mz, _ = AStar(mz, 'euclid')
+# print(len(mz[mz == 1]))
+# print(mz)
 # print(maze_short_path(mz))
 # print(maze_solvability(0.3, 100, 100))

@@ -1,6 +1,9 @@
 from collections import deque
 from queue import PriorityQueue
 import numpy as np
+from matrix import generate_maze
+from tqdm import tqdm
+import copy
 
 
 # BFS Search
