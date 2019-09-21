@@ -57,6 +57,7 @@ def compute_hardness(m, search):
 
 
 def gene_mute(m, rate):
+    m = np.array(m, dtype=int)
     for i in range(len(m)):
         for j in range(len(m)):
             if m[i, j] == 0 and (i != 0 and j != 0):
@@ -86,9 +87,12 @@ def gene_crossover(par1, par2, dim, search, mutation):
                 elif r < .9:
                     child_matrix[i * size:(i + 1) * size, j * size:(j + 1) * size] = m2[i * size:(i + 1) * size,
                                                                                      j * size:(j + 1) * size]
+                elif r < .95:
+                    child_matrix[i * size:(i + 1) * size, j * size:(j + 1) * size] = gene_mute(
+                        m1[i * size:(i + 1) * size, j * size:(j + 1) * size], mutation)
                 else:
                     child_matrix[i * size:(i + 1) * size, j * size:(j + 1) * size] = gene_mute(
-                        child_matrix[i * size:(i + 1) * size, j * size:(j + 1) * size], mutation)
+                        m2[i * size:(i + 1) * size, j * size:(j + 1) * size], mutation)
         tmp_mz = copy.copy(child_matrix)
         _, success = search(tmp_mz)
     h = len(tmp_mz[tmp_mz == 1])
