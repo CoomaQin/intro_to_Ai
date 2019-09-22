@@ -21,6 +21,6 @@ import copy
 # print(li)
 # print([li[0][0], li[1][0]])
 
-print(np.sqrt(np.square(5 - 2) + np.square(6 - 2)))
-print(np.square(6))
+print(np.sqrt(np.square(7) + np.square(7)))
+
 

@@ -205,4 +205,4 @@ def heuristic(start_idx, goal_idx, param):
     if param == 'manhattan':
         return goal_idx[0] - start_idx[0] + goal_idx[1] - start_idx[0]
     if param == 'euclid':
-        return int(np.sqrt(np.square(goal_idx[0] - start_idx[0]) + np.square(goal_idx[1] - start_idx[1])))
+        return int(np.sqrt(np.square(10*(goal_idx[0] - start_idx[0])) + np.square(10*(goal_idx[1] - start_idx[1]))))
