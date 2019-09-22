@@ -20,10 +20,7 @@ import copy
 # print(m)
 # print(li)
 # print([li[0][0], li[1][0]])
-print(generate_maze(0.1, 5))
-li = []
-for i in range(3):
-    m = np.zeros([i, i])
-    li.append((m, i))
-print(li)
-print(sorted(li, key=lambda x: x[1]))
+
+print(np.sqrt(np.square(5 - 2) + np.square(6 - 2)))
+print(np.square(6))
+

@@ -1,4 +1,4 @@
-from search_algs import DFS, BFS, AStar
+from search_algs import DFS, BFS, AStar, BIBFS
 # from grid_draw import draw_grid
 from local_search import genetic
 from matrix import generate_maze
@@ -29,13 +29,17 @@ def maze_short_path(maze_matrix):
     return nx.shortest_path(G, source=0, target=N - 1)[-1] + 1
 
 
-p = genetic(30, 0.1, 100, 20, DFS, 0.1)
-for i in p:
-    print(i.hardness)
+# p = genetic(30, 0.1, 100, 20, DFS, 0.1)
+# for i in p:
+#     print(i.hardness)
 
-# mz = generate_maze(0.2, 1000)
-# mz, _ = AStar(mz, 'euclid')
-# print(len(mz[mz == 1]))
-# print(mz)
+mz = generate_maze(0.2, 10)
+# mz, _ = AStar(mz, 'manhattan')
+# mz, _ = BFS(mz)
+# mz, _ = DFS(mz)
+# mz, _ = BIBFS(mz)
+mz, _ = AStar(mz, 'euclid')
+print(len(mz[mz == 1]))
+print(mz)
 # print(maze_short_path(mz))
 # print(maze_solvability(0.3, 100, 100))

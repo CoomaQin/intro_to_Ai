@@ -23,7 +23,7 @@ def BFS(m):
                 # print('111')
                 success = True
                 break
-            updateDown(neighbor, tmp, dim)
+            neighbor = updateDown(tmp, dim)
             for cell in neighbor:
                 if m[cell[0], cell[1]] == 0 or m[cell[0], cell[1]] == 4:
                     fringe.append(cell)
@@ -35,8 +35,6 @@ def BFS(m):
 def BIBFS(m):
     searchedA = []
     searchedB = []
-    neighborA = []
-    neighborB = []
     fringeA = deque()
     fringeB = deque()
     success = False
@@ -55,7 +53,7 @@ def BIBFS(m):
                 break
             searchedA.append(tmpA)
             # add adjacent cells for forward
-            updateDown(neighborA, tmpA, dim)
+            neighborA = updateDown(tmpA, dim)
             for cell in neighborA:
                 if m[cell[0], cell[1]] == 0 or m[cell[0], cell[1]] == 4:
                     fringeA.append(cell)
@@ -68,7 +66,7 @@ def BIBFS(m):
                 break
             searchedB.append(tmpB)
             # add adjacent cells for backward
-            updateUp(neighborB, tmpB, dim)
+            neighborB = updateUp(tmpB, dim)
             for cell in neighborB:
                 if m[cell[0], cell[1]] == 0 or m[cell[0], cell[1]] == 4:
                     fringeB.append(cell)
@@ -102,7 +100,8 @@ def DFS(m):
     return m, success
 
 
-def updateUp(neighbor, index, size):
+def updateUp(index, size):
+    neighbor = []
     if index[0] != 0:
         neighbor.append([index[0] - 1, index[1]])
     if index[1] != 0:
@@ -111,9 +110,11 @@ def updateUp(neighbor, index, size):
         neighbor.append([index[0], index[1] + 1])
     if index[0] != size - 1:
         neighbor.append([index[0] + 1, index[1]])
+    return neighbor
 
 
-def updateDown(neighbor, index, size):
+def updateDown(index, size):
+    neighbor = []
     if index[1] != size - 1:
         neighbor.append([index[0], index[1] + 1])
     if index[0] != size - 1:
@@ -122,6 +123,7 @@ def updateDown(neighbor, index, size):
         neighbor.append([index[0] - 1, index[1]])
     if index[1] != 0:
         neighbor.append([index[0], index[1] - 1])
+    return neighbor
 
 
 # experimental for a more guided dfs
@@ -189,7 +191,7 @@ def AStar(m, param):
         if m[tmp[0], tmp[1]] == 4:
             success = True
             break
-        updateDown(neighbor, tmp, dim)
+        neighbor = updateDown(tmp, dim)
         for cell in neighbor:
             if m[cell[0], cell[1]] == 0 or m[cell[0], cell[1]] == 4:
                 g.update({str(cell): g[str(tmp)] + 1})
@@ -203,4 +205,4 @@ def heuristic(start_idx, goal_idx, param):
     if param == 'manhattan':
         return goal_idx[0] - start_idx[0] + goal_idx[1] - start_idx[0]
     if param == 'euclid':
-        return np.sqrt((goal_idx[0] + start_idx[0]) ^ 2 + (goal_idx[1] - start_idx[0]) ^ 2)
+        return int(np.sqrt(np.square(goal_idx[0] - start_idx[0]) + np.square(goal_idx[1] - start_idx[1])))
