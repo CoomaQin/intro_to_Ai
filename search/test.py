@@ -1,7 +1,7 @@
 import numpy as np
 from collections import deque
 from queue import PriorityQueue
-from matrix import generate_maze
+# from matrix import generate_maze
 import copy
 
 # q = PriorityQueue()
@@ -16,11 +16,7 @@ import copy
 # print(m)
 # print(mz)
 
-# li = np.where(m == 2)
-# print(m)
-# print(li)
-# print([li[0][0], li[1][0]])
-
-print(np.sqrt(np.square(7) + np.square(7)))
-
-
+tmp = {}
+tmp.update({(1, 1): 1})
+for key in tmp:
+    print(key[0], key[1])

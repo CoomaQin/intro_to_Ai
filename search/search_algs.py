@@ -119,10 +119,10 @@ def updateDown(index, size):
         neighbor.append([index[0], index[1] + 1])
     if index[0] != size - 1:
         neighbor.append([index[0] + 1, index[1]])
-    if index[0] != 0:
-        neighbor.append([index[0] - 1, index[1]])
-    if index[1] != 0:
-        neighbor.append([index[0], index[1] - 1])
+    # if index[0] != 0:
+    #     neighbor.append([index[0] - 1, index[1]])
+    # if index[1] != 0:
+    #     neighbor.append([index[0], index[1] - 1])
     return neighbor
 
 
@@ -195,7 +195,7 @@ def AStar(m, param):
         for cell in neighbor:
             if m[cell[0], cell[1]] == 0 or m[cell[0], cell[1]] == 4:
                 g.update({str(cell): g[str(tmp)] + 1})
-                priority = g[str(cell)] + heuristic(cell, [dim, dim], param)
+                priority = g[str(cell)] + 10 * heuristic(cell, [dim-1, dim-1], param)
                 fringe.put((priority, cell))
         m[tmp[0], tmp[1]] = 1
     return m, success
@@ -203,6 +203,6 @@ def AStar(m, param):
 
 def heuristic(start_idx, goal_idx, param):
     if param == 'manhattan':
-        return goal_idx[0] - start_idx[0] + goal_idx[1] - start_idx[0]
+        return (goal_idx[0] - start_idx[0]) + (goal_idx[1] - start_idx[1])
     if param == 'euclid':
         return int(np.sqrt(np.square(10*(goal_idx[0] - start_idx[0])) + np.square(10*(goal_idx[1] - start_idx[1]))))
