@@ -325,20 +325,23 @@ def fireeuclid():
         for k in bestPath:
             #fire spread
             fire_maze_update(q, m)
+            #check if we are in fire
+            if m[i][j] == 3:
+                print("Dead at " + str(i) + ", " + str(j))
+                break
             # get the next indices for the next path node
             i = (paths[0])[k][0]
             j = (paths[0])[k][1]
-            #check if we are at the end or in the fire
+            #check if we moved into fire
             if m[i][j] == 3:
-                print("hey")
                 print("Dead at " + str(i) + ", " + str(j))
                 break
             #since we moved fire before we moved if we are adjacent to the end block we can move to it and win
             elif (i == len(m) - 2 and j == len(m) - 1) or (i == len(m) - 1 and j == len(m) - 2):
-                print("hey")
                 print("Success")
                 successRate += 1
                 break
+        print("At " + str(i) + ", " + str(j))
     #divide successrate by h
     print("success : ", successRate/10)
     print("q : ", q)
