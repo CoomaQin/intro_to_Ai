@@ -281,7 +281,7 @@ def fireMazeShortestPath():
 #euclid distance from top right(fire origin)
 #then runs the best fit path
 def fireeuclid():
-    q = .2
+    q = .3
     successRate = 0
     for h in range(10):
         i = 0
@@ -291,18 +291,17 @@ def fireeuclid():
         bestAvg = 0
         shortestLength = 0
         bestPath = None
-        m = generate_fire_maze(.35, 100)
-        while not (BFS(m)[1]):
-            m = generate_fire_maze(.35, 100)
-
-        #get all paths
-        #paths[0] - list of nodes that can be visited
-        #paths[1] - generator of paths that returns list of indices that corresponds
-        #with paths[0] nodes that need to be visited to get to finish
-        paths = maze_short_paths(m)
 
         #find best fit path
         while(bestPath == None):
+            m = generate_fire_maze(.35, 100)
+            while not (BFS(m)[1]):
+                m = generate_fire_maze(.35, 100)
+            # get all paths
+            # paths[0] - list of nodes that can be visited
+            # paths[1] - generator of paths that returns list of indices that corresponds
+            # with paths[0] nodes that need to be visited to get to finish
+            paths = maze_short_paths(m)
             p=0
             for path in paths[1]:
                 if(p > 25000):
