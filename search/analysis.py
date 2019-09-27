@@ -10,6 +10,7 @@ import copy
 
 
 
+#function to calculate maze solvability
 def maze_solvability(p, dim, num):
     solvable_count = 0
     for i in range(num):
@@ -19,7 +20,9 @@ def maze_solvability(p, dim, num):
             solvable_count += 1
     return solvable_count / num
 
-
+#turn maze into an adjacency matrix
+#then into a graph and use nx.shortest_path to get the list
+#of nodes visited with a list of nodes index of the shortest path within the first list
 def maze_short_path(maze_matrix):
     index = np.argwhere(maze_matrix == 1)
     N = len(index)
@@ -35,19 +38,27 @@ def maze_short_path(maze_matrix):
                 aj_matrix[i, j] = 1
                 aj_matrix[j, i] = 1
     G = nx.from_numpy_matrix(aj_matrix, create_using=nx.DiGraph())
-    return index, nx.shortest_path(G, source=0, target=N - 1)
+    return index, nx.shortest_path(G, source=0, target=N-1)
 
-
-# p = genetic(30, 0.1, 100, 20, DFS, 0.1)
-# for i in p:
-#     print(i.hardness)
-
-
-# mz, _ = BFS(mz)
-# mz, _ = DFS(mz)
-# mz, _ = BIBFS(mz)
-# mz, _ = AStar(mz, 'euclid')
-# draw_grid(mz)
+#turn maze into an adjacency matrix
+#then into a graph and use nx.all_shortest_paths_path to get the list
+#of nodes visited with a generator of node indeces which are visited and form a path to finish
+def maze_short_paths(maze_matrix):
+    index = np.argwhere(maze_matrix == 1)
+    N = len(index)
+    aj_matrix = np.zeros([N, N], dtype=int)
+    for i in range(N):
+        for j in range(i):
+            x = index[i][0] - index[j][0]
+            y = index[i][1] - index[j][1]
+            if x == 1 and y == 0:
+                aj_matrix[i, j] = 1
+                aj_matrix[j, i] = 1
+            if x == 0 and y == 1:
+                aj_matrix[i, j] = 1
+                aj_matrix[j, i] = 1
+    G = nx.from_numpy_matrix(aj_matrix, create_using=nx.DiGraph())
+    return index, nx.all_shortest_paths(G, source=0, target=N-1)
 
 def compare_distance():
     dim = np.linspace(100, 200, num=10, dtype=int)
