@@ -303,7 +303,7 @@ def fireeuclid():
 
         #find best fit path
         for path in paths[1]:
-            if(p > 15000):
+            if(p > 25000):
                 break
             p+=1
             for index in path:
@@ -313,11 +313,19 @@ def fireeuclid():
             #get avg euclidian distance of path
             avgOfPath = avgOfPath / lengthOfPath
             #if it is longer than this is the new best path
-            if bestAvg <= avgOfPath and lengthOfPath < shortestLength and (paths[0])[path[len(path)-1]][0] == 99 and (paths[0])[path[len(path) - 1]][1] == 98:
+            if bestAvg <= avgOfPath and lengthOfPath < shortestLength and \
+                    (((paths[0])[path[len(path)-1]][0] == 99 and
+                      (paths[0])[path[len(path) - 1]][1] == 98)
+                     or ((paths[0])[path[len(path)-1]][0] == 98 and
+                         (paths[0])[path[len(path) - 1]][1] == 99)):
                 bestAvg = avgOfPath
                 bestPath = path
                 shortestLength = lengthOfPath
-            elif bestAvg < avgOfPath and (paths[0])[path[len(path)-1]][0] == 99 and (paths[0])[path[len(path) - 1]][1] == 98:
+            elif bestAvg <= avgOfPath and \
+                    (((paths[0])[path[len(path)-1]][0] == 99 and
+                      (paths[0])[path[len(path) - 1]][1] == 98)
+                     or ((paths[0])[path[len(path)-1]][0] == 98 and
+                         (paths[0])[path[len(path) - 1]][1] == 99)):
                 bestAvg = avgOfPath
                 bestPath = path
                 shortestLength = lengthOfPath
@@ -341,7 +349,6 @@ def fireeuclid():
                 print("Success")
                 successRate += 1
                 break
-        print("At " + str(i) + ", " + str(j))
     #divide successrate by h
     print("success : ", successRate/10)
     print("q : ", q)
