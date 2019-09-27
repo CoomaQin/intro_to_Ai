@@ -281,7 +281,7 @@ def fireMazeShortestPath():
 #euclid distance from top right(fire origin)
 #then runs the best fit path
 def fireeuclid():
-    q = .1
+    q = .2
     successRate = 0
     for h in range(10):
         i = 0
@@ -313,11 +313,11 @@ def fireeuclid():
             #get avg euclidian distance of path
             avgOfPath = avgOfPath / lengthOfPath
             #if it is longer than this is the new best path
-            if bestAvg <= avgOfPath and lengthOfPath < shortestLength:
+            if bestAvg <= avgOfPath and lengthOfPath < shortestLength and (paths[0])[path[len(path)-1]][0] == 99 and (paths[0])[path[len(path) - 1]][1] == 98:
                 bestAvg = avgOfPath
                 bestPath = path
                 shortestLength = lengthOfPath
-            elif bestAvg < avgOfPath:
+            elif bestAvg < avgOfPath and (paths[0])[path[len(path)-1]][0] == 99 and (paths[0])[path[len(path) - 1]][1] == 98:
                 bestAvg = avgOfPath
                 bestPath = path
                 shortestLength = lengthOfPath
