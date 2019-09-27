@@ -1,16 +1,12 @@
-from search_algs import DFS, BFS, AStar, BIBFS
-from grid_draw import draw_grid
-from local_search import genetic
-from matrix import generate_maze
+
 import networkx as nx
 import numpy as np
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 import copy
+from search.matrix import generate_maze
+from search.search_algs import *
 
-
-
-#function to calculate maze solvability
 def maze_solvability(p, dim, num):
     solvable_count = 0
     for i in range(num):
@@ -109,9 +105,7 @@ def SP_analysis():
 
 
 # SP_analysis()
-mz = generate_maze(0.2, 20)
-mzc = copy.copy(mz)
-mz, success, _ = AStar(mz, 'euclid')
-mzc, _ = BIBFS(mzc)
-draw_grid(mz)
-draw_grid(mzc)
+#mz = generate_maze(0.2, 20)
+#mzc = copy.copy(mz)
+#mz, success, _ = AStar(mz, 'euclid')
+#mzc, _ = BIBFS(mzc)
