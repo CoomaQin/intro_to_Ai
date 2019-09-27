@@ -286,11 +286,11 @@ def fireeuclid():
     for h in range(10):
         i = 0
         j = 0
-        p = 0
         avgOfPath = 0
         lengthOfPath = 0
         bestAvg = 0
         shortestLength = 0
+        bestPath = None
         m = generate_fire_maze(.35, 100)
         while not (BFS(m)[1]):
             m = generate_fire_maze(.35, 100)
@@ -302,33 +302,35 @@ def fireeuclid():
         paths = maze_short_paths(m)
 
         #find best fit path
-        for path in paths[1]:
-            if(p > 25000):
-                break
-            p+=1
-            for index in path:
-                cell = (paths[0])[index]
-                avgOfPath += heuristic(cell, [0, len(m)-1], 'euclid')
-                lengthOfPath += 1
-            #get avg euclidian distance of path
-            avgOfPath = avgOfPath / lengthOfPath
-            #if it is longer than this is the new best path
-            if bestAvg <= avgOfPath and lengthOfPath < shortestLength and \
-                    (((paths[0])[path[len(path)-1]][0] == 99 and
-                      (paths[0])[path[len(path) - 1]][1] == 98)
-                     or ((paths[0])[path[len(path)-1]][0] == 98 and
-                         (paths[0])[path[len(path) - 1]][1] == 99)):
-                bestAvg = avgOfPath
-                bestPath = path
-                shortestLength = lengthOfPath
-            elif bestAvg <= avgOfPath and \
-                    (((paths[0])[path[len(path)-1]][0] == 99 and
-                      (paths[0])[path[len(path) - 1]][1] == 98)
-                     or ((paths[0])[path[len(path)-1]][0] == 98 and
-                         (paths[0])[path[len(path) - 1]][1] == 99)):
-                bestAvg = avgOfPath
-                bestPath = path
-                shortestLength = lengthOfPath
+        while(bestPath == None):
+            p=0
+            for path in paths[1]:
+                if(p > 25000):
+                    break
+                p+=1
+                for index in path:
+                    cell = (paths[0])[index]
+                    avgOfPath += heuristic(cell, [0, len(m)-1], 'euclid')
+                    lengthOfPath += 1
+                #get avg euclidian distance of path
+                avgOfPath = avgOfPath / lengthOfPath
+                #if it is longer than this is the new best path
+                if bestAvg <= avgOfPath and lengthOfPath < shortestLength and \
+                        (((paths[0])[path[len(path)-1]][0] == 99 and
+                          (paths[0])[path[len(path) - 1]][1] == 98)
+                         or ((paths[0])[path[len(path)-1]][0] == 98 and
+                             (paths[0])[path[len(path) - 1]][1] == 99)):
+                    bestAvg = avgOfPath
+                    bestPath = path
+                    shortestLength = lengthOfPath
+                elif bestAvg <= avgOfPath and \
+                        (((paths[0])[path[len(path)-1]][0] == 99 and
+                          (paths[0])[path[len(path) - 1]][1] == 98)
+                         or ((paths[0])[path[len(path)-1]][0] == 98 and
+                             (paths[0])[path[len(path) - 1]][1] == 99)):
+                    bestAvg = avgOfPath
+                    bestPath = path
+                    shortestLength = lengthOfPath
         #run through the path
         for k in bestPath:
             #fire spread
