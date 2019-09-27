@@ -34,15 +34,12 @@ def regular_search(m, param):
                 priority = g[str(cell)] + 10 * heuristic(cell, [dim - 1, dim - 1], param)
                 fringe.put((priority, cell))
         m[tmp[0], tmp[1]] = 1
-    print(k)
     return m, status
 
-
-maze = generate_fire_maze(0.2, 15)
-print(maze)
-# for _ in range(3):
-#     print(fire_maze_update(0.3, maze))
-#     print('-------------------------')
-maze, success = regular_search(maze, 'euclid')
-print(maze)
-print(success)
+sum = 0
+for _ in range(100):
+    maze = generate_fire_maze(0.35, 100)
+    maze, status = regular_search(maze, 'euclid')
+    if status == 'success':
+        sum += 1
+print(sum/100)

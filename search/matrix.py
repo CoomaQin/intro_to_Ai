@@ -80,5 +80,4 @@ def fire_maze_update(p_fire, m):
         rv = np.random.sample()
         if rv < 1 - (1 - p_fire) ** tmp[key]:
             m[key[0], key[1]] = 3
-    print(tmp)
     return m

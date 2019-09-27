@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import copy
 
 
+
 def maze_solvability(p, dim, num):
     solvable_count = 0
     for i in range(num):
@@ -21,7 +22,6 @@ def maze_solvability(p, dim, num):
 
 def maze_short_path(maze_matrix):
     index = np.argwhere(maze_matrix == 1)
-    print(index)
     N = len(index)
     aj_matrix = np.zeros([N, N], dtype=int)
     for i in range(N):
@@ -35,8 +35,7 @@ def maze_short_path(maze_matrix):
                 aj_matrix[i, j] = 1
                 aj_matrix[j, i] = 1
     G = nx.from_numpy_matrix(aj_matrix, create_using=nx.DiGraph())
-    print(aj_matrix)
-    return index, nx.shortest_path(G, source=0, target=N-1)
+    return index, nx.shortest_path(G, source=0, target=N - 1)
 
 
 # p = genetic(30, 0.1, 100, 20, DFS, 0.1)
@@ -73,7 +72,7 @@ def compare_distance():
 
 
 def SP_analysis():
-    p = np.linspace(0.14, 0.34, num=10, dtype=int)
+    p = np.linspace(0.14, 0.34, num=10)
     print(p)
     avg = []
     for i in p:
@@ -82,18 +81,26 @@ def SP_analysis():
             success = False
             while not success:
                 mz = generate_maze(i, 100)
-                mz, success = DFS(mz)
-            total += maze_short_path(mz)
+                # mz, success = DFS(mz)
+                # mz, success = BFS(mz)
+                mz, success, _ = AStar(mz, 'manhattan')
+                # mz, success, _ = DFS(mz, 'euclid')
+                # mz, success = BIBFS(mz)
+                _, SP = maze_short_path(mz)
+            total += len(SP)
         avg.append(total / 100)
     print(avg)
     plt.plot(p, avg)
+    plt.title('BFS')
     plt.ylabel('average SP')
     plt.xlabel('p')
     plt.show()
 
 
-mz = generate_maze(0.2, 3)
-mz, _, f1 = AStar(mz, 'manhattan')
-print(mz)
-p = maze_short_path(mz)
-print(p)
+# SP_analysis()
+mz = generate_maze(0.2, 20)
+mzc = copy.copy(mz)
+mz, success, _ = AStar(mz, 'euclid')
+mzc, _ = BIBFS(mzc)
+draw_grid(mz)
+draw_grid(mzc)
