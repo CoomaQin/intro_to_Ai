@@ -3,11 +3,12 @@ import numpy as np
 from queue import PriorityQueue
 from search_algs import heuristic, updateDown
 from matrix import generate_fire_maze, fire_maze_update
+from tqdm import tqdm
+
 
 # use A* search
 def regular_search(m, param):
     neighbor = []
-    k = 0
     fringe = PriorityQueue()
     # keep g values in a dictionary
     g = {"[0, 0]": 0}
@@ -17,7 +18,6 @@ def regular_search(m, param):
     fringe.put((heuristic([0, 0], [dim, dim], param), [0, 0]))
     while fringe:
         fire_maze_update(0.3, m)
-        k+=1
         _, tmp = fringe.get()
         if m[tmp[0], tmp[1]] == 4:
             status = 'success'
@@ -25,7 +25,7 @@ def regular_search(m, param):
         elif m[tmp[0], tmp[1]] == 3:
             # the pos you die
             m[tmp[0], tmp[1]] = 6
-            status='dead'
+            status = 'dead'
             break
         neighbor = updateDown(tmp, dim)
         for cell in neighbor:
@@ -36,10 +36,20 @@ def regular_search(m, param):
         m[tmp[0], tmp[1]] = 1
     return m, status
 
-sum = 0
-for _ in range(100):
-    maze = generate_fire_maze(0.35, 100)
-    maze, status = regular_search(maze, 'euclid')
-    if status == 'success':
-        sum += 1
-print(sum/100)
+
+# sum = 0
+# for _ in tqdm(range(15)):
+#     loop = True
+#     while loop:
+#         maze = generate_fire_maze(0.3, 20)
+#         maze, status = regular_search(maze, 'euclid')
+#         if status == 'dead':
+#             break
+#         elif status == 'success':
+#             sum += 1
+#             break
+# print(sum / 20)
+
+maze = generate_fire_maze(0.3, 20)
+maze, status = regular_search(maze, 'euclid')
+print(maze, status)

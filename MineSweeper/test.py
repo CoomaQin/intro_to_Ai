@@ -1,6 +1,10 @@
 import random
 import numpy as np
+import game_board as gb
 
-li1 = [[1,2],2,5]
-li1.remove(5)
-print(li1)
+n = 9*np.ones([3, 3], dtype=int)
+print(len(n[n == 9]))
+# b = gb.Board(4, 3)
+# b.query([0, 0])
+# b.query([1, 0])
+# b.query([2, 0])

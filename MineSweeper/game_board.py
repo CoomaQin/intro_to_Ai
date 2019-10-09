@@ -18,7 +18,7 @@ class Board:
         if mine_num > dim ** 2:
             raise ValueError('too many mines.')
         self.mine_num = mine_num
-        self.covered_list = range(0, dim ** 2 - 1)
+        self.covered_list = np.linspace(0, dim ** 2 - 1, num=dim ** 2, dtype=int).tolist()
         cell_matrix = []
         mine = random.sample(range(0, dim ** 2 - 1), mine_num)
         mine_list = []
@@ -37,23 +37,38 @@ class Board:
                 tmp.append(tmp_cell)
             cell_matrix.append(tmp)
         self.cell_matrix = cell_matrix
-        self.value_matrix = np.zeros([dim, dim], dtype=int)
+        self.boom = 0
+        self.value_matrix = 9 * np.ones([dim, dim], dtype=int)
 
     def query(self, idx):
-        if self.cell_matrix[idx[0]][idx[1]].status == 'uncovered':
-            raise ValueError('this cell has been queried')
-        self.cell_matrix[idx[0]][idx[1]].status = 'uncovered'
-        value = 0
-        for elem in self.mine_list:
-            if abs(elem[0] - idx[0]) <= 1 and abs(elem[1] - idx[1]) <= 1:
-                value += 1
-        self.value_matrix[idx[0], idx[1]] = value
+        cell = self.cell_matrix[idx[0]][idx[1]]
+        if cell.status == 'uncovered':
+            raise ValueError('cell ' + str(idx) + ' has been queried')
+        if cell.is_mine:
+            self.boom += 1
+            self.mark(idx)
+        else:
+            cell.status = 'uncovered'
+            value = 0
+            for elem in self.mine_list:
+                if abs(elem[0] - idx[0]) <= 1 and abs(elem[1] - idx[1]) <= 1:
+                    value += 1
+            self.value_matrix[idx[0], idx[1]] = value
+            self.covered_list.remove(idx[0] * self.dim + idx[1])
 
     def mark(self, idx):
         if self.cell_matrix[idx[0]][idx[1]] == 'uncovered':
-            raise ValueError('this cell has been queried')
+            raise ValueError('cell ' + str(idx) + ' has been queried')
         self.cell_matrix[idx[0]][idx[1]].status = 'marked'
         self.value_matrix[idx[0], idx[1]] = 10
+        self.covered_list.remove(idx[0] * self.dim + idx[1])
+
+    def is_gameover(self):
+        m = self.value_matrix
+        if len(m[m == 9]) == 0:
+            return True
+        else:
+            return False
 
 
 def unmarked_neighbors(index, board):
@@ -72,14 +87,14 @@ def unmarked_neighbors(index, board):
         if j != 0:
             if board.cell_matrix[i + 1][j - 1].status == 'covered':
                 neighbors.append([i + 1, j - 1])
+            if board.cell_matrix[i][j - 1].status == 'covered':
+                neighbors.append([i, j - 1])
     if i != 0:
         if board.cell_matrix[i - 1][j].status == 'covered':
             neighbors.append([i - 1, j])
         if j != 0:
             if board.cell_matrix[i - 1][j - 1].status == 'covered':
                 neighbors.append([i - 1, j - 1])
-            if board.cell_matrix[i][j - 1].status == 'covered':
-                neighbors.append([i, j - 1])
         if j != size - 1:
             if board.cell_matrix[i - 1][j + 1].status == 'covered':
                 neighbors.append([i - 1, j + 1])
@@ -87,13 +102,13 @@ def unmarked_neighbors(index, board):
 
 
 def randow_select(board):
-    r = random.sample(board.covered_list, 1)
-    idx = [np.floor(r / board.dim), r % board.dim]
+    r = random.choice(board.covered_list)
+    idx = [r // board.dim, r % board.dim]
     return idx
 
 
 def is_all_safe(idx, board):
-    if board.visual_matrix[idx[0], idx[1]] == 0:
+    if board.value_matrix[idx[0], idx[1]] == 0:
         all_safe = True
     else:
         all_safe = False
@@ -102,14 +117,8 @@ def is_all_safe(idx, board):
 
 def is_all_mine(idx, board):
     unmarked_list = unmarked_neighbors(idx, board)
-    if board.visual_matrix[idx[0], idx[1]] == len(unmarked_list):
+    if board.value_matrix[idx[0], idx[1]] == len(unmarked_list):
         all_mine = True
     else:
         all_mine = False
     return all_mine
-
-
-b = Board(4, 3)
-b.query([0, 0])
-print(b.value_matrix)
-print(b.mine_list)

@@ -1,14 +1,13 @@
 import collections
 from queue import PriorityQueue
-from search.analysis import maze_short_path, maze_short_paths
-from search.matrix import *
-
+from analysis import maze_short_path, maze_short_paths
+from matrix import *
 
 
 # BFS Search implementation will always look into down and right nodes first as that
-#is where our goal is
-#marks path traveled with 1s on the matrix input
-#returns the marked matrix and a boolean value that evaluates if alg could reach goal
+# is where our goal is
+# marks path traveled with 1s on the matrix input
+# returns the marked matrix and a boolean value that evaluates if alg could reach goal
 def BFS(m):
     searched = []
     neighbor = []
@@ -76,10 +75,11 @@ def BIBFS(m):
             m[tmpB[0], tmpB[1]] = 1
     return m, success
 
-#DFS search implementation that will always look into down and right nodes first as that
-#is where our goal is
-#marks path traveled with 1s on the matrix input
-#returns the marked matrix and a boolean value that evaluates if alg could reach goal
+
+# DFS search implementation that will always look into down and right nodes first as that
+# is where our goal is
+# marks path traveled with 1s on the matrix input
+# returns the marked matrix and a boolean value that evaluates if alg could reach goal
 def DFS(m):
     searched = []
     fringe = []
@@ -104,7 +104,8 @@ def DFS(m):
             m[tmp[0], tmp[1]] = 1
     return m, success
 
-#loads nodes in priority to get to top left node fastest when using a queue(BD-BFS)
+
+# loads nodes in priority to get to top left node fastest when using a queue(BD-BFS)
 def updateUp(index, size):
     neighbor = []
     if index[0] != 0:
@@ -117,7 +118,8 @@ def updateUp(index, size):
         neighbor.append([index[0] + 1, index[1]])
     return neighbor
 
-#loads nodes in priority to get to down right node fastest when using a queue(BFS, BD-BFS)
+
+# loads nodes in priority to get to down right node fastest when using a queue(BFS, BD-BFS)
 def updateDown(index, size):
     neighbor = []
     if index[1] != size - 1:
@@ -125,7 +127,7 @@ def updateDown(index, size):
     if index[0] != size - 1:
         neighbor.append([index[0] + 1, index[1]])
     if index[0] != 0:
-         neighbor.append([index[0] - 1, index[1]])
+        neighbor.append([index[0] - 1, index[1]])
     if index[1] != 0:
         neighbor.append([index[0], index[1] - 1])
     return neighbor
@@ -181,8 +183,9 @@ def updateDFS(neighbor, index, size):
                     if index[1] != 0:
                         neighbor.append([index[0], index[1] - 1])
 
-#A* search that uses a heuristic to estimate how far each potential next node is from finish node
-#sorts them in a priority queue and goes to most prioritized node first
+
+# A* search that uses a heuristic to estimate how far each potential next node is from finish node
+# sorts them in a priority queue and goes to most prioritized node first
 def AStar(m, param):
     neighbor = []
     fringe = PriorityQueue()
@@ -201,15 +204,16 @@ def AStar(m, param):
         for cell in neighbor:
             if m[cell[0], cell[1]] == 0 or m[cell[0], cell[1]] == 4:
                 g.update({str(cell): g[str(tmp)] + 1})
-                priority = g[str(cell)] + 10 * heuristic(cell, [dim-1, dim-1], param)
+                priority = g[str(cell)] + 10 * heuristic(cell, [dim - 1, dim - 1], param)
                 fringe.put((priority, cell))
         m[tmp[0], tmp[1]] = 1
     return m, success
 
-#A* version that can start and go towars custom locations
-#used in fire maze to get multiple paths
-#unlike regular A* this one returns a path which is a list of nodes that need to be
-#visited to get to the end parameter node
+
+# A* version that can start and go towars custom locations
+# used in fire maze to get multiple paths
+# unlike regular A* this one returns a path which is a list of nodes that need to be
+# visited to get to the end parameter node
 def AStarSpecific(m, param, start, end, path):
     neighbor = []
     fringe = PriorityQueue()
@@ -234,52 +238,55 @@ def AStarSpecific(m, param, start, end, path):
         path.append([tmp[0], tmp[1]])
     return path, success
 
-#heuristic fucntion for A* search
-#evaluates a heuristic from start index to end index, based on param
-#param = manhattan => use manhattan distance as heuristic
-#param = euclid => use euclid distance as heuristic
+
+# heuristic fucntion for A* search
+# evaluates a heuristic from start index to end index, based on param
+# param = manhattan => use manhattan distance as heuristic
+# param = euclid => use euclid distance as heuristic
 def heuristic(start_idx, goal_idx, param):
     if param == 'manhattan':
         return (goal_idx[0] - start_idx[0]) + (goal_idx[1] - start_idx[1])
     if param == 'euclid':
-        return int(np.sqrt(np.square(10*(goal_idx[0] - start_idx[0])) + np.square(10*(goal_idx[1] - start_idx[1]))))
+        return int(np.sqrt(np.square(10 * (goal_idx[0] - start_idx[0])) + np.square(10 * (goal_idx[1] - start_idx[1]))))
 
-#find shortest path in a solvable maze and take it while fire spreads
-#by default runs 10 times and prints out success rate, change l range to run more or fewer times
+
+# find shortest path in a solvable maze and take it while fire spreads
+# by default runs 10 times and prints out success rate, change l range to run more or fewer times
 def fireMazeShortestPath():
-    sucessrate=0
+    sucessrate = 0
     q = .1
     for l in range(10):
-        i=0
-        j=0
-        k=1
+        i = 0
+        j = 0
+        k = 1
         print(l)
         m = generate_fire_maze(.35, 100)
-        while not(BFS(m)[1]):
+        while not (BFS(m)[1]):
             m = generate_fire_maze(.35, 100)
 
         path = maze_short_path(m)
-        #timestep loop
+        # timestep loop
         for k in path[1]:
-            #print( str(i) + ", " + str(j))
+            # print( str(i) + ", " + str(j))
             fire_maze_update(q, m)
             i = (path[0])[k][0]
             j = (path[0])[k][1]
             if m[i][j] == 3:
                 print("Dead at " + str(i) + ", " + str(j))
                 break
-            elif (i == len(m)-2 and j == len(m)-1) or (i == len(m)-1 and j == len(m)-2):
+            elif (i == len(m) - 2 and j == len(m) - 1) or (i == len(m) - 1 and j == len(m) - 2):
                 print("Success")
                 sucessrate += 1
                 break
     print("q: ", q)
-    print("success rate: ", sucessrate/20)
-    sucessrate=0
-    q+=.1
+    print("success rate: ", sucessrate / 20)
+    sucessrate = 0
+    q += .1
 
-#same as fireshortestpath, but finds p paths and evaluates them based on
-#euclid distance from top right(fire origin)
-#then runs the best fit path
+
+# same as fireshortestpath, but finds p paths and evaluates them based on
+# euclid distance from top right(fire origin)
+# then runs the best fit path
 def fireeuclid():
     q = .3
     successRate = 0
@@ -292,8 +299,8 @@ def fireeuclid():
         shortestLength = 0
         bestPath = None
 
-        #find best fit path
-        while(bestPath == None):
+        # find best fit path
+        while (bestPath == None):
             m = generate_fire_maze(.35, 100)
             while not (BFS(m)[1]):
                 m = generate_fire_maze(.35, 100)
@@ -302,54 +309,54 @@ def fireeuclid():
             # paths[1] - generator of paths that returns list of indices that corresponds
             # with paths[0] nodes that need to be visited to get to finish
             paths = maze_short_paths(m)
-            p=0
+            p = 0
             for path in paths[1]:
-                if(p > 25000):
+                if (p > 25000):
                     break
-                p+=1
+                p += 1
                 for index in path:
                     cell = (paths[0])[index]
-                    avgOfPath += heuristic(cell, [0, len(m)-1], 'euclid')
+                    avgOfPath += heuristic(cell, [0, len(m) - 1], 'euclid')
                     lengthOfPath += 1
-                #get avg euclidian distance of path
+                # get avg euclidian distance of path
                 avgOfPath = avgOfPath / lengthOfPath
-                #if it is longer than this is the new best path
+                # if it is longer than this is the new best path
                 if bestAvg <= avgOfPath and lengthOfPath < shortestLength and \
-                        (((paths[0])[path[len(path)-1]][0] == 99 and
+                        (((paths[0])[path[len(path) - 1]][0] == 99 and
                           (paths[0])[path[len(path) - 1]][1] == 98)
-                         or ((paths[0])[path[len(path)-1]][0] == 98 and
+                         or ((paths[0])[path[len(path) - 1]][0] == 98 and
                              (paths[0])[path[len(path) - 1]][1] == 99)):
                     bestAvg = avgOfPath
                     bestPath = path
                     shortestLength = lengthOfPath
                 elif bestAvg <= avgOfPath and \
-                        (((paths[0])[path[len(path)-1]][0] == 99 and
+                        (((paths[0])[path[len(path) - 1]][0] == 99 and
                           (paths[0])[path[len(path) - 1]][1] == 98)
-                         or ((paths[0])[path[len(path)-1]][0] == 98 and
+                         or ((paths[0])[path[len(path) - 1]][0] == 98 and
                              (paths[0])[path[len(path) - 1]][1] == 99)):
                     bestAvg = avgOfPath
                     bestPath = path
                     shortestLength = lengthOfPath
-        #run through the path
+        # run through the path
         for k in bestPath:
-            #fire spread
+            # fire spread
             fire_maze_update(q, m)
-            #check if we are in fire
+            # check if we are in fire
             if m[i][j] == 3:
                 print("Dead at " + str(i) + ", " + str(j))
                 break
             # get the next indices for the next path node
             i = (paths[0])[k][0]
             j = (paths[0])[k][1]
-            #check if we moved into fire
+            # check if we moved into fire
             if m[i][j] == 3:
                 print("Dead at " + str(i) + ", " + str(j))
                 break
-            #since we moved fire before we moved if we are adjacent to the end block we can move to it and win
+            # since we moved fire before we moved if we are adjacent to the end block we can move to it and win
             elif (i == len(m) - 2 and j == len(m) - 1) or (i == len(m) - 1 and j == len(m) - 2):
                 print("Success")
                 successRate += 1
                 break
-    #divide successrate by h
-    print("success : ", successRate/10)
+    # divide successrate by h
+    print("success : ", successRate / 10)
     print("q : ", q)
