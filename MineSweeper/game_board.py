@@ -6,6 +6,7 @@ class Cell:
     """
     a cell represents  an element in the board
     """
+
     def __init__(self, pos, is_mine, status='covered', neighbors=None):
         if neighbors is None:
             # number 9 represents uncovered cell
@@ -94,7 +95,7 @@ class Board:
             return False
 
 
-def unmarked_neighbors(index, board):
+def covered_neighbors(index, board):
     neighbors = []
     i = index[0]
     j = index[1]
@@ -122,6 +123,27 @@ def unmarked_neighbors(index, board):
             if board.cell_matrix[i - 1][j + 1].status == 'covered':
                 neighbors.append([i - 1, j + 1])
     return neighbors
+
+
+def update_neighbors(index, board):
+    i = index[0]
+    j = index[1]
+    value = board.value_matrix[i, j]
+    size = board.dim
+    if i != size - 1:
+        board.cell_matrix[i + 1][j].neighbors[1] = value
+        if j != size - 1:
+            board.cell_matrix[i + 1][j + 1].neighbors[0] = value
+            board.cell_matrix[i][j + 1].neighbors[3] = value
+        if j != 0:
+            board.cell_matrix[i + 1][j - 1].neighbors[2] = value
+            board.cell_matrix[i][j - 1].neighbors[4] = value
+    if i != 0:
+        board.cell_matrix[i - 1][j].neighbors[6] = value
+        if j != 0:
+            board.cell_matrix[i - 1][j - 1].neighbors[7] = value
+        if j != size - 1:
+            board.cell_matrix[i - 1][j + 1].neighbors[5] = value
 
 
 def randow_select(board):
