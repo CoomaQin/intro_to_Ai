@@ -9,7 +9,10 @@ class Cell:
 
     def __init__(self, pos, is_mine, status='covered', neighbors=None):
         if neighbors is None:
-            # number 9 represents uncovered cell
+            # number 9 represents uncovered cell, the positions of neighbors are defined below:
+            # neighbors[0], neighbors[1], neighbors[2]
+            # neighbors[3],     self    , neighbors[4]
+            # neighbors[5], neighbors[6], neighbors[7]
             neighbors = [9, 9, 9, 9, 9, 9, 9, 9]
         # position
         self.pos = pos
@@ -46,6 +49,7 @@ class Board:
                     tmp_cell = Cell([i, j], True)
                 else:
                     tmp_cell = Cell([i, j], False)
+                preprocess_neighbors(tmp_cell, self.dim)
                 tmp.append(tmp_cell)
             cell_matrix.append(tmp)
         self.cell_matrix = cell_matrix
@@ -96,6 +100,12 @@ class Board:
 
 
 def covered_neighbors(index, board):
+    """
+    find all covered neighbors of a cell
+    :param index:
+    :param board:
+    :return:
+    """
     neighbors = []
     i = index[0]
     j = index[1]
@@ -146,6 +156,28 @@ def update_neighbors(index, board):
             board.cell_matrix[i - 1][j + 1].neighbors[5] = value
 
 
+def preprocess_neighbors(cell, size):
+    # number "11" means out of the board, cell has no neighbor in that position
+    i = cell.pos[0]
+    j = cell.pos[1]
+    if i == 0:
+        cell.neighbors[0] = 11
+        cell.neighbors[1] = 11
+        cell.neighbors[2] = 11
+    if i == size-1:
+        cell.neighbors[5] = 11
+        cell.neighbors[6] = 11
+        cell.neighbors[7] = 11
+    if j ==0:
+        cell.neighbors[0] = 11
+        cell.neighbors[3] = 11
+        cell.neighbors[5] = 11
+    if j == size-1:
+        cell.neighbors[2] = 11
+        cell.neighbors[4] = 11
+        cell.neighbors[7] = 11
+
+
 def randow_select(board):
     """
     randomly select a cell from covered cells
@@ -164,7 +196,8 @@ def is_all_safe(idx, board):
     :param board:
     :return:
     """
-    if board.value_matrix[idx[0], idx[1]] == 0:
+    neighbors = board.cell_matrix[idx[0]][idx[1]].neighbors
+    if board.value_matrix[idx[0], idx[1]] == neighbors.count(10):
         all_safe = True
     else:
         all_safe = False
@@ -178,9 +211,12 @@ def is_all_mine(idx, board):
     :param board:
     :return:
     """
-    unmarked_list = unmarked_neighbors(idx, board)
-    if board.value_matrix[idx[0], idx[1]] == len(unmarked_list):
+    # unmarked_list = covered_neighbors(idx, board)
+    # if board.value_matrix[idx[0], idx[1]] == len(unmarked_list):
+    neighbors = board.cell_matrix[idx[0]][idx[1]].neighbors
+    if board.value_matrix[idx[0], idx[1]] == neighbors.count(9) + neighbors.count(10):
         all_mine = True
     else:
         all_mine = False
     return all_mine
+

@@ -16,23 +16,25 @@ def DSSP(board):
         while fset:
             posx = fset.pop()
             board.query(posx)
-            tmp = gb.unmarked_neighbors(posx, board)
+            gb.update_neighbors(posx, board)
+            tmp = gb.covered_neighbors(posx, board)
             if gb.is_all_safe(posx, board):
                 for elem in tmp:
                     if elem not in fset:
                         fset.append(elem)
             else:
                 for elem in tmp:
-                    if elem not in fset:
+                    if elem not in sset:
                         sset.append(elem)
         for idx in sset:
             # marked determined mines before going back to safe set
             if gb.is_all_mine(idx, board):
-                for y in gb.unmarked_neighbors(idx, board):
-                    board.mark(y)
+                for posy in gb.covered_neighbors(idx, board):
+                    board.mark(posy)
+                    gb.update_neighbors(posy, board)
         for idx in sset:
             if gb.is_all_safe(idx, board):
-                tmp = gb.unmarked_neighbors(idx, board)
+                tmp = gb.covered_neighbors(idx, board)
                 for elem in tmp:
                     if elem not in fset:
                         fset.append(elem)
@@ -52,13 +54,16 @@ def TSSP(board):
         # while termination < 10:
         if not fset:
             if csp:
+                csp = False
                 constraint_statisfation(sset, board)
             else:
+                csp = True
                 x = gb.randow_select(board)
                 fset.append(x)
         while fset:
             posx = fset.pop()
             board.query(posx)
+            gb.update_neighbors(posx, board)
             tmp = gb.covered_neighbors(posx, board)
             if gb.is_all_safe(posx, board):
                 for elem in tmp:
@@ -73,6 +78,7 @@ def TSSP(board):
             if gb.is_all_mine(idx, board):
                 for y in gb.covered_neighbors(idx, board):
                     board.mark(y)
+                    gb.update_neighbors(y, board)
         for idx in sset:
             if gb.is_all_safe(idx, board):
                 tmp = gb.covered_neighbors(idx, board)
@@ -89,8 +95,7 @@ def constraint_statisfation(fringe, board):
     # not finish
 
 
-
-b = gb.Board(6, 4)
+b = gb.Board(10, 30)
 print(b.mine_list)
 m = DSSP(b)
 print(m)
