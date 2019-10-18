@@ -23,9 +23,10 @@ def DSSP(board):
                     if elem not in fset:
                         fset.append(elem)
             else:
-                for elem in tmp:
-                    if elem not in sset:
-                        sset.append(elem)
+                sset.append(posx)
+                # for elem in tmp:
+                #     if elem not in sset:
+                #         sset.append(elem)
         for idx in sset:
             # marked determined mines before going back to safe set
             if gb.is_all_mine(idx, board):
@@ -55,7 +56,11 @@ def TSSP(board):
         if not fset:
             if csp:
                 csp = False
-                constraint_statisfation(sset, board)
+                solvable, mines = constraint_statisfation(sset, board)
+                if solvable:
+                    for i in mines:
+                        board.mark(i)
+                        gb.update_neighbors(i, board)
             else:
                 csp = True
                 x = gb.randow_select(board)
@@ -70,9 +75,7 @@ def TSSP(board):
                     if elem not in fset:
                         fset.append(elem)
             else:
-                for elem in tmp:
-                    if elem not in sset:
-                        sset.append(elem)
+                sset.append(posx)
         for idx in sset:
             # marked determined mines before going back to safe set
             if gb.is_all_mine(idx, board):
@@ -91,12 +94,22 @@ def TSSP(board):
 
 
 def constraint_statisfation(fringe, board):
+    """
+    based on a list of covered cells and the situation of their neighbors (the number of uncovered neighbors, the number
+    of marked neighbor, etc), form a set of linear equations. the solution of the equation's set represent the position
+    of mines (if it is solvable).
+    :param fringe: a list of uncovered cells
+    :param board: the mine sweeper board
+    :return: (True, a list of mines) if solvable
+             (False, values of cells in the fringe) otherwise
+    """
     neighbor_index = []
     var = []
     b = []
     for idx in fringe:
-        covered_list = [i for i, v in enumerate(board.cell_matrix[idx[0]][idx[1]]) if v == 9]
-        b.append(board.value_matrix[idx[0], idx[1]])
+        covered_list = [i for i, v in enumerate(board.cell_matrix[idx[0]][idx[1]].neighbors) if v == 9]
+        marked_list = [i for i, v in enumerate(board.cell_matrix[idx[0]][idx[1]].neighbors) if v == 10]
+        b.append(board.value_matrix[idx[0], idx[1]]-len(marked_list))
         row = []
         for elem in covered_list:
             if elem == 0:
@@ -119,20 +132,27 @@ def constraint_statisfation(fringe, board):
             if tmp not in var:
                 var.append(tmp)
         neighbor_index.append(row)
-    size = len(var)
-    linear_equation = np.zeros([size, size], dtype=int)
+    sizey = len(var)
+    sizex = len(b)
+    linear_equation = np.zeros([sizex, sizey], dtype=int)
     for x in range(len(neighbor_index)):
         for idx in neighbor_index[x]:
             y = var.index(idx)
             linear_equation[x, y] = 1
+    # print(linear_equation)
     try:
-        return True, np.linalg.solve(linear_equation, b)
+        solution = np.linalg.solve(linear_equation, b)
+        mine_idx = [idx for idx, elem in enumerate(solution) if elem == 1]
+        mine_list = []
+        for idx in mine_idx:
+            mine_list.append(var[idx])
+        return True, mine_list
     except np.linalg.LinAlgError:
         return False, b
 
 
 b = gb.Board(10, 10)
 print(b.mine_list)
-m = DSSP(b)
+m = TSSP(b)
 print(m)
 print('the number of mines are queried: ' + str(b.boom))
