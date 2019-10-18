@@ -13,6 +13,7 @@ def DSSP(board):
         if not fset:
             x = gb.randow_select(board)
             fset.append(x)
+        print(sset)
         while fset:
             posx = fset.pop()
             board.query(posx)
@@ -53,7 +54,7 @@ def TSSP(board):
         if not fset:
             if csp:
                 csp = False
-                solvable, mines = constraint_statisfation(sset, board)
+                solvable, mines = constraint_satisfaction(sset, board)
                 if solvable:
                     for i in mines:
                         board.mark(i)
@@ -90,7 +91,7 @@ def TSSP(board):
     return board.value_matrix
 
 
-def constraint_statisfation(fringe, board):
+def constraint_satisfaction(fringe, board):
     """
     based on a list of covered cells and the situation of their neighbors (the number of uncovered neighbors, the number
     of marked neighbor, etc), form a set of linear equations. the solution of the equation's set represent the position
@@ -150,28 +151,27 @@ def constraint_statisfation(fringe, board):
 
 # b = gb.Board(10, 10)
 # print(b.mine_list)
-# m = TSSP(b)
+# m = DSSP(b)
 # print(m)
 # print('the number of mines are queried: ' + str(b.boom))
 
+# test csp
 b = gb.Board(3, 0)
 b.mine_list = [[0, 2], [2, 2]]
 b.cell_matrix[0][2].is_mine = True
 b.cell_matrix[2][2].is_mine = True
-
-# test csp
-# b.query([0, 0])
-# gb.update_neighbors([0, 0], b)
-# b.query([1, 0])
-# gb.update_neighbors([1, 0], b)
-# b.query([2, 0])
-# gb.update_neighbors([2, 0], b)
-# b.query([0, 1])
-# gb.update_neighbors([0, 1], b)
-# b.query([1, 1])
-# gb.update_neighbors([1, 1], b)
-# b.query([2, 1])
-# gb.update_neighbors([2, 1], b)
-# print(b.value_matrix)
-# fr = [[0, 1], [1, 1], [2, 1]]
-# print(constraint_statisfation(fr, b))
+b.query([0, 0])
+gb.update_neighbors([0, 0], b)
+b.query([1, 0])
+gb.update_neighbors([1, 0], b)
+b.query([2, 0])
+gb.update_neighbors([2, 0], b)
+b.query([0, 1])
+gb.update_neighbors([0, 1], b)
+b.query([1, 1])
+gb.update_neighbors([1, 1], b)
+b.query([2, 1])
+gb.update_neighbors([2, 1], b)
+print(b.value_matrix)
+fr = [[0, 1], [1, 1], [2, 1]]
+print(constraint_satisfaction(fr, b))
