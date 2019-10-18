@@ -24,9 +24,6 @@ def DSSP(board):
                         fset.append(elem)
             else:
                 sset.append(posx)
-                # for elem in tmp:
-                #     if elem not in sset:
-                #         sset.append(elem)
         for idx in sset:
             # marked determined mines before going back to safe set
             if gb.is_all_mine(idx, board):
@@ -109,7 +106,7 @@ def constraint_statisfation(fringe, board):
     for idx in fringe:
         covered_list = [i for i, v in enumerate(board.cell_matrix[idx[0]][idx[1]].neighbors) if v == 9]
         marked_list = [i for i, v in enumerate(board.cell_matrix[idx[0]][idx[1]].neighbors) if v == 10]
-        b.append(board.value_matrix[idx[0], idx[1]]-len(marked_list))
+        b.append(board.value_matrix[idx[0], idx[1]] - len(marked_list))
         row = []
         for elem in covered_list:
             if elem == 0:
@@ -151,8 +148,30 @@ def constraint_statisfation(fringe, board):
         return False, b
 
 
-b = gb.Board(10, 10)
-print(b.mine_list)
-m = TSSP(b)
-print(m)
-print('the number of mines are queried: ' + str(b.boom))
+# b = gb.Board(10, 10)
+# print(b.mine_list)
+# m = TSSP(b)
+# print(m)
+# print('the number of mines are queried: ' + str(b.boom))
+
+b = gb.Board(3, 0)
+b.mine_list = [[0, 2], [2, 2]]
+b.cell_matrix[0][2].is_mine = True
+b.cell_matrix[2][2].is_mine = True
+
+# test csp
+# b.query([0, 0])
+# gb.update_neighbors([0, 0], b)
+# b.query([1, 0])
+# gb.update_neighbors([1, 0], b)
+# b.query([2, 0])
+# gb.update_neighbors([2, 0], b)
+# b.query([0, 1])
+# gb.update_neighbors([0, 1], b)
+# b.query([1, 1])
+# gb.update_neighbors([1, 1], b)
+# b.query([2, 1])
+# gb.update_neighbors([2, 1], b)
+# print(b.value_matrix)
+# fr = [[0, 1], [1, 1], [2, 1]]
+# print(constraint_statisfation(fr, b))

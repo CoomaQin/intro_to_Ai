@@ -142,18 +142,20 @@ def update_neighbors(index, board):
     size = board.dim
     if i != size - 1:
         board.cell_matrix[i + 1][j].neighbors[1] = value
-        if j != size - 1:
-            board.cell_matrix[i + 1][j + 1].neighbors[0] = value
-            board.cell_matrix[i][j + 1].neighbors[3] = value
-        if j != 0:
-            board.cell_matrix[i + 1][j - 1].neighbors[2] = value
-            board.cell_matrix[i][j - 1].neighbors[4] = value
+    if i != size - 1 and j != size - 1:
+        board.cell_matrix[i + 1][j + 1].neighbors[0] = value
+    if j != size - 1:
+        board.cell_matrix[i][j + 1].neighbors[3] = value
+    if j != 0 and i != size - 1:
+        board.cell_matrix[i + 1][j - 1].neighbors[2] = value
+    if j != 0:
+        board.cell_matrix[i][j - 1].neighbors[4] = value
     if i != 0:
         board.cell_matrix[i - 1][j].neighbors[6] = value
-        if j != 0:
-            board.cell_matrix[i - 1][j - 1].neighbors[7] = value
-        if j != size - 1:
-            board.cell_matrix[i - 1][j + 1].neighbors[5] = value
+    if i != 0 and j != 0:
+        board.cell_matrix[i - 1][j - 1].neighbors[7] = value
+    if i != 0 and j != size - 1:
+        board.cell_matrix[i - 1][j + 1].neighbors[5] = value
 
 
 def preprocess_neighbors(cell, size):
@@ -164,15 +166,15 @@ def preprocess_neighbors(cell, size):
         cell.neighbors[0] = 11
         cell.neighbors[1] = 11
         cell.neighbors[2] = 11
-    if i == size-1:
+    if i == size - 1:
         cell.neighbors[5] = 11
         cell.neighbors[6] = 11
         cell.neighbors[7] = 11
-    if j ==0:
+    if j == 0:
         cell.neighbors[0] = 11
         cell.neighbors[3] = 11
         cell.neighbors[5] = 11
-    if j == size-1:
+    if j == size - 1:
         cell.neighbors[2] = 11
         cell.neighbors[4] = 11
         cell.neighbors[7] = 11
@@ -219,4 +221,3 @@ def is_all_mine(idx, board):
     else:
         all_mine = False
     return all_mine
-
