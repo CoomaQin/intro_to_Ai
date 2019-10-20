@@ -79,17 +79,51 @@ class Board:
             self.value_matrix[idx[0], idx[1]] = value
             self.covered_list.remove(idx[0] * self.dim + idx[1])
 
+    def queryUncertain(self, idx, p):
+        """
+        use it to query a cell
+        :param idx: the position of the cell
+        :return:
+        """
+        r = np.random.random_sample()
+        cell = self.cell_matrix[idx[0]][idx[1]]
+        if cell.status == 'uncovered' or cell.status == 'not a mine':
+            raise ValueError('cell ' + str(idx) + ' has been queried')
+        if cell.is_mine:
+            self.boom += 1
+            self.mark(idx)
+        elif r <= p:
+            cell.status = 'not a mine'
+            value = 0
+            for elem in cell.neighbors:
+                if elem == 10:
+                    value += 1
+            self.value_matrix[idx[0], idx[1]] = value
+            self.covered_list.remove(idx[0] * self.dim + idx[1])
+        else:
+            cell.status = 'uncovered'
+            value = 0
+            for elem in self.value_matrix:
+                if abs(elem[0] - idx[0]) <= 1 and abs(elem[1] - idx[1]) <= 1:
+                    value += 1
+            self.value_matrix[idx[0], idx[1]] = value
+            self.covered_list.remove(idx[0] * self.dim + idx[1])
+
     def mark(self, idx):
         """
         use it to mark a cell
         :param idx: the position of the cell
         :return:
         """
-        if self.cell_matrix[idx[0]][idx[1]] == 'uncovered':
+        if self.cell_matrix[idx[0]][idx[1]] == 'uncovered' or self.cell_matrix[idx[0]][idx[1]] == 'not a mine':
             raise ValueError('cell ' + str(idx) + ' has been queried')
         self.cell_matrix[idx[0]][idx[1]].status = 'marked'
         self.value_matrix[idx[0], idx[1]] = 10
         self.covered_list.remove(idx[0] * self.dim + idx[1])
+        for elem in self.cell_matrix[idx[0]][idx[1]].neighbors:
+            if elem.status == 'not a mine':
+                elem.value += 1
+
 
     def is_gameover(self):
         m = self.value_matrix
@@ -199,7 +233,7 @@ def is_all_safe(idx, board):
     :return:
     """
     neighbors = board.cell_matrix[idx[0]][idx[1]].neighbors
-    if board.value_matrix[idx[0], idx[1]] == neighbors.count(10):
+    if board.value_matrix[idx[0], idx[1]] == neighbors.count(10) and board.cell_matrix[idx[0]][idx[1]].status != 'not a mine':
         all_safe = True
     else:
         all_safe = False
