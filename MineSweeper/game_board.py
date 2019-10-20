@@ -1,5 +1,7 @@
 import random
 import numpy as np
+from scipy.special import comb
+import sympy
 
 
 class Cell:
@@ -25,6 +27,10 @@ class Cell:
 
 class Board:
     def __init__(self, dim, mine_num):
+        """
+        :param dim: the dimension of the board
+        :param mine_num: the number of mines
+        """
         # assume board is in the shape of square
         self.dim = dim
         if mine_num > dim ** 2:
@@ -189,6 +195,90 @@ def randow_select(board):
     r = random.choice(board.covered_list)
     idx = [r // board.dim, r % board.dim]
     return idx
+
+
+def improved_guess(fringe, board):
+    # generate linear equations represent KB in the fringe
+    neighbor_index = []
+    var = []
+    b = []
+    for idx in fringe:
+        covered_list = [i for i, v in enumerate(board.cell_matrix[idx[0]][idx[1]].neighbors) if v == 9]
+        marked_list = [i for i, v in enumerate(board.cell_matrix[idx[0]][idx[1]].neighbors) if v == 10]
+        b.append(board.value_matrix[idx[0], idx[1]] - len(marked_list))
+        row = []
+        for elem in covered_list:
+            if elem == 0:
+                tmp = [idx[0] - 1, idx[1] - 1]
+            elif elem == 1:
+                tmp = [idx[0] - 1, idx[1]]
+            elif elem == 2:
+                tmp = [idx[0] - 1, idx[1] + 1]
+            elif elem == 3:
+                tmp = [idx[0], idx[1] - 1]
+            elif elem == 4:
+                tmp = [idx[0], idx[1] + 1]
+            elif elem == 5:
+                tmp = [idx[0] + 1, idx[1] - 1]
+            elif elem == 6:
+                tmp = [idx[0] + 1, idx[1]]
+            else:
+                tmp = [idx[0] + 1, idx[1] + 1]
+            row.append(tmp)
+            if tmp not in var:
+                var.append(tmp)
+        neighbor_index.append(row)
+    sizevar = len(var)
+    sizeb = len(b)
+    linear_equation = np.zeros([sizeb, sizevar], dtype=int)
+    for x in range(len(neighbor_index)):
+        for idx in neighbor_index[x]:
+            y = var.index(idx)
+            linear_equation[x, y] = 1
+    # find all manually exclusive groups
+    least_mine = max(b)
+    groups = []
+    # add one more linear equation that represent the sum of these vars
+    linear_equation = np.vstack((linear_equation, np.ones(len(var), dtype=int)))
+    for i in range(least_mine, len(var)):
+        b.append(i)
+        try:
+            solution = np.linalg.solve(linear_equation, b)
+            safe_idx = [idx for idx, elem in enumerate(solution) if elem == 0]
+            safe_list = []
+            for idx in safe_idx:
+                safe_list.append(var[idx])
+            groups.append(safe_list)
+        except np.linalg.LinAlgError:
+            pass
+        finally:
+            b.pop()
+        continue
+    outside_num = len(board.covered_list) - sizevar
+    max_comb = sizevar
+    sum_comb = 0
+    mostlikely_group = []
+    mostlikely_mines_left_num = 0
+    if groups:
+        for j in groups:
+            mines_left_num = board.mine_num - (sizevar - len(j))
+            comb_num = comb(outside_num, mines_left_num)
+            if comb_num >= max_comb:
+                max_comb = comb_num
+                mostlikely_group = j
+                mostlikely_mines_left_num = mines_left_num
+            sum_comb += comb_num
+        if max_comb / sum_comb >= (outside_num - mostlikely_mines_left_num)/outside_num:
+            return True, mostlikely_group
+        else:
+            outside = False
+            while not outside:
+                idx = randow_select(board)
+                if idx not in var:
+                    outside = True
+                    return True, [idx]
+    else:
+        return False, mostlikely_group
 
 
 def is_all_safe(idx, board):
