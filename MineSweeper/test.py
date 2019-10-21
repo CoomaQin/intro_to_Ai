@@ -17,12 +17,14 @@ from itertools import combinations
 # print(g)
 # print(g[:, -1])
 
-# x = np.linalg.solve(a, b)
-# print(np.array(x, dtype=int))
-# c = np.zeros(2, dtype=int)
-# v = np.vstack((a, c))
-# print(v)
-# print(np.linalg.matrix_rank(v))
-# r1 = np.linalg.matrix_rank(a)
-# print(r1)
-
+a = np.array([[1, 1, 1, 1], [1, 0, 0, 1]])
+am = sp.Matrix(a)
+g = np.array(am.rref()[0].tolist()).astype(np.int32)
+print(g)
+a = g[:,0:3]
+b = g[:,3]
+print(a)
+for i in range(0,1):
+    if len(np.where(a[i,:]>0)[0]) == 1:
+        print(b[i])
+# print(b)
