@@ -43,17 +43,17 @@ def DSSP(board):
     return board.value_matrix
 
 
-def TSSP(board):
+def TSSP(board, csp_enable=False, improved_guess_enable=False):
     # set of cells can be safely queried
     fset = []
     # a temporary set, similar to but not equal to fringe
     sset = []
     csp = False
-    termination = 0
+    # termination = 0
     while not board.is_gameover():
         # while termination < 10:
         if not fset:
-            if csp:
+            if csp and csp_enable:
                 csp = False
                 solvable = False
                 mines = []
@@ -73,8 +73,13 @@ def TSSP(board):
                         gb.update_neighbors(i, board)
             else:
                 csp = True
-                x = gb.randow_select(board)
-                fset.append(x)
+                if improved_guess_enable and board.mine_left <= board.mine_num / 4:
+                    success, x = gb.improved_guess(sset, board)
+                    if not success:
+                        x = [gb.randow_select(board)]
+                else:
+                    x = [gb.randow_select(board)]
+                fset.extend(x)
         while fset:
             posx = fset.pop()
             board.query(posx)
@@ -161,11 +166,11 @@ def constraint_satisfaction(fringe, board):
         return False, b
 
 
-# b = gb.Board(10, 15)
-# print(b.mine_list)
-# m = TSSP(b)
-# print(m)
-# print('the number of mines are queried: ' + str(b.boom))
+b = gb.Board(10, 15)
+print(b.mine_list)
+m = TSSP(b, False, True)
+print(m)
+print('the number of mines are queried: ' + str(b.boom))
 
 # test csp
 # b = gb.Board(3, 0)
@@ -189,41 +194,40 @@ def constraint_satisfaction(fringe, board):
 # print(constraint_satisfaction(fr, b))
 
 # test improved guess
-b = gb.Board(5, 0)
-b.mine_list = [[0, 0], [0, 1], [1, 2], [1, 3], [2, 1], [3, 1], [4, 0]]
-b.cell_matrix[0][0].is_mine = True
-b.cell_matrix[0][1].is_mine = True
-b.cell_matrix[1][2].is_mine = True
-b.cell_matrix[1][3].is_mine = True
-b.cell_matrix[2][1].is_mine = True
-b.cell_matrix[3][1].is_mine = True
-b.cell_matrix[4][0].is_mine = True
-
-b.query([0, 2])
-gb.update_neighbors([0, 2], b)
-b.query([1, 0])
-gb.update_neighbors([1, 0], b)
-b.query([2, 0])
-gb.update_neighbors([2, 0], b)
-b.query([3, 0])
-gb.update_neighbors([3, 0], b)
-b.query([0, 3])
-gb.update_neighbors([0, 3], b)
-b.query([0, 4])
-gb.update_neighbors([0, 4], b)
-
-b.mark([0, 0])
-gb.update_neighbors([0, 0], b)
-b.mark([0, 1])
-gb.update_neighbors([0, 1], b)
-b.mark([1, 2])
-gb.update_neighbors([1, 2], b)
-b.mark([3, 1])
-gb.update_neighbors([3, 1], b)
-b.mark([4, 0])
-gb.update_neighbors([4, 0], b)
-print(b.value_matrix)
-# print(b.cell_matrix[0][2].neighbors)
-
-fr = [[0, 2], [0, 3], [0, 4], [1, 0], [2, 0], [3, 0]]
-print(gb.improved_guess(fr, b))
+# b = gb.Board(5, 0)
+# b.mine_list = [[0, 0], [0, 1], [1, 2], [1, 3], [2, 1], [3, 1], [4, 0]]
+# b.cell_matrix[0][0].is_mine = True
+# b.cell_matrix[0][1].is_mine = True
+# b.cell_matrix[1][2].is_mine = True
+# b.cell_matrix[1][3].is_mine = True
+# b.cell_matrix[2][1].is_mine = True
+# b.cell_matrix[3][1].is_mine = True
+# b.cell_matrix[4][0].is_mine = True
+# b.mine_left = 7
+#
+# b.query([0, 2])
+# gb.update_neighbors([0, 2], b)
+# b.query([1, 0])
+# gb.update_neighbors([1, 0], b)
+# b.query([2, 0])
+# gb.update_neighbors([2, 0], b)
+# b.query([3, 0])
+# gb.update_neighbors([3, 0], b)
+# b.query([0, 3])
+# gb.update_neighbors([0, 3], b)
+# b.query([0, 4])
+# gb.update_neighbors([0, 4], b)
+#
+# b.mark([0, 0])
+# gb.update_neighbors([0, 0], b)
+# b.mark([0, 1])
+# gb.update_neighbors([0, 1], b)
+# b.mark([1, 2])
+# gb.update_neighbors([1, 2], b)
+# b.mark([3, 1])
+# gb.update_neighbors([3, 1], b)
+# b.mark([4, 0])
+# gb.update_neighbors([4, 0], b)
+# print(b.value_matrix)
+# fr = [[0, 2], [0, 3], [0, 4], [1, 0], [2, 0], [3, 0]]
+# print(gb.improved_guess(fr, b))

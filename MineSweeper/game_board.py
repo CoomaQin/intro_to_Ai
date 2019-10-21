@@ -1,7 +1,7 @@
 import random
 import numpy as np
 from scipy.special import comb
-import sympy
+import sympy as sp
 
 
 class Cell:
@@ -36,6 +36,7 @@ class Board:
         if mine_num > dim ** 2:
             raise ValueError('too many mines.')
         self.mine_num = mine_num
+        self.mine_left = mine_num
         # shore cells are still covered
         self.covered_list = np.linspace(0, dim ** 2 - 1, num=dim ** 2, dtype=int).tolist()
         cell_matrix = []
@@ -96,6 +97,7 @@ class Board:
         self.cell_matrix[idx[0]][idx[1]].status = 'marked'
         self.value_matrix[idx[0], idx[1]] = 10
         self.covered_list.remove(idx[0] * self.dim + idx[1])
+        self.mine_left = self.mine_left - 1
 
     def is_gameover(self):
         m = self.value_matrix
@@ -240,20 +242,21 @@ def improved_guess(fringe, board):
     groups = []
     # add one more linear equation that represent the sum of these vars
     linear_equation = np.vstack((linear_equation, np.ones(len(var), dtype=int)))
+    b.append(0)
+    b = np.array(b).reshape((-1, 1))
+    agumented_matrix = np.hstack((linear_equation, b))
     for i in range(least_mine, len(var)):
-        b.append(i)
-        try:
-            solution = np.linalg.solve(linear_equation, b)
+        agumented_matrix[sizeb, sizevar] = i
+        if np.linalg.matrix_rank(linear_equation) == np.linalg.matrix_rank(agumented_matrix):
+            am = sp.Matrix(agumented_matrix)
+            echelon = np.array(am.rref()[0].tolist()).astype(np.int32)
+            echelon = echelon[0:sizevar]
+            solution = echelon[:, -1]
             safe_idx = [idx for idx, elem in enumerate(solution) if elem == 0]
             safe_list = []
             for idx in safe_idx:
                 safe_list.append(var[idx])
             groups.append(safe_list)
-        except np.linalg.LinAlgError:
-            pass
-        finally:
-            b.pop()
-        continue
     outside_num = len(board.covered_list) - sizevar
     max_comb = sizevar
     sum_comb = 0
@@ -261,14 +264,17 @@ def improved_guess(fringe, board):
     mostlikely_mines_left_num = 0
     if groups:
         for j in groups:
-            mines_left_num = board.mine_num - (sizevar - len(j))
-            comb_num = comb(outside_num, mines_left_num)
-            if comb_num >= max_comb:
-                max_comb = comb_num
-                mostlikely_group = j
-                mostlikely_mines_left_num = mines_left_num
-            sum_comb += comb_num
-        if max_comb / sum_comb >= (outside_num - mostlikely_mines_left_num)/outside_num:
+            if len(j) > 0:
+                mines_left_num = board.mine_left - sizevar + len(j) + 1
+                comb_num = comb(outside_num, mines_left_num)
+                if comb_num >= max_comb:
+                    max_comb = comb_num
+                    mostlikely_group = j
+                    mostlikely_mines_left_num = mines_left_num
+                sum_comb += comb_num
+        if int(sum_comb) == 0:
+            sum_comb = 1
+        if max_comb / sum_comb >= (outside_num - mostlikely_mines_left_num) / outside_num:
             return True, mostlikely_group
         else:
             outside = False
