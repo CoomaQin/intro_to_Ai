@@ -1,30 +1,37 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Oct 14 21:26:44 2019
+
+@author: ruixigu
+"""
+
 import random
 import numpy as np
-import sympy as sp
 import game_board as gb
-from scipy.special import comb
-from itertools import combinations
+from alg import *
+from draw import draw_board
+from alg import TSMP, constraint_satisfaction_gauss, constraint_satisfaction, DSSP
 
-# a = np.array([[1, 1, 0, 0, 0], [1, 1, 0, 0, 0], [1, 0, 1, 0, 0], [0, 0, 1, 1, 0], [0, 0, 1, 1, 0], [0, 0, 0, 1, 1],
-#               [1, 1, 1, 1, 1]])
-# print(np.linalg.matrix_rank(a))
-# b = np.array([1, 1, 1, 1, 1, 1, 2])
-# b = b.reshape((-1, 1))
-# a = np.hstack((a, b))
-# print(np.linalg.matrix_rank(a))
-# am = sp.Matrix(a)
-# g = np.array(am.rref()[0].tolist()).astype(np.int32)
-# print(g)
-# print(g[:, -1])
 
-a = np.array([[1, 1, 1, 1], [1, 0, 0, 1]])
-am = sp.Matrix(a)
-g = np.array(am.rref()[0].tolist()).astype(np.int32)
-print(g)
-a = g[:,0:3]
-b = g[:,3]
-print(a)
-for i in range(0,1):
-    if len(np.where(a[i,:]>0)[0]) == 1:
-        print(b[i])
-# print(b)
+def test(dim,d,num):
+    lose_count = 0
+    total_density = 0
+    for i in range(num):
+        b = gb.Board(dim, d)
+        #print(b.mine_list)
+        m = DSSP(b)
+        #m = TSMP(b,True,True)
+        print(m)
+        density = 1 - (int(str(b.boom)) / b.mine_num)
+        print('density = ' + str(density))
+        if int(str(b.boom)) >=1:
+            print('lose')
+            lose_count += 1
+        print('the number of mines are queried: ' + str(b.boom))
+        total_density += density
+        score = total_density / num
+    return (1- lose_count/num), score
+
+
+
