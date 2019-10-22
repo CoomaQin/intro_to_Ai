@@ -105,6 +105,77 @@ def TSMP(board, csp_enable=False, improved_guess_enable=False):
     return board.value_matrix
 
 
+def TSMPUncertain(p, board, csp_enable=False, improved_guess_enable=False):
+    # set of cells can be safely queried
+    fset = []
+    # a temporary set, similar to but not equal to fringe
+    sset = []
+    csp = False
+    while not board.is_gameover():
+        if not fset:
+            if len(sset) == 0:
+                x = [gb.randow_select(board)]
+                fset.extend(x)
+            elif csp and csp_enable:
+                csp = False
+                solvable = False
+                mines = []
+                # for combine_num in range(2, len(sset) - 1):
+                #     combs = combinations(sset, combine_num)
+                #     for li in combs:
+                #         solvable, mines = constraint_satisfaction(list(li), board)
+                #         if solvable:
+                #             print(1)
+                #             break
+                #     if solvable:
+                #         print(mines)
+                #         break
+                solvable, mines = constraint_satisfaction_gauss(sset, board)
+                if solvable:
+                    for i in mines:
+                        board.mark(i)
+                        if(sset.__contains__(i)):
+                            sset.remove(i)
+                        if(board.cell_matrix[i[0]][i[1]].status != 'not a mine'):
+                            gb.update_neighbors(i, board)
+            else:
+                csp = True
+                if improved_guess_enable and board.mine_left <= board.mine_num / 4:
+                    success, x = gb.improved_guess(sset, board)
+                    if not success:
+                        x = [gb.randow_select(board)]
+                else:
+                    x = [gb.randow_select(board)]
+                fset.extend(x)
+        while fset:
+            posx = fset.pop()
+            board.queryUncertain(posx, p)
+            gb.update_neighbors(posx, board)
+            tmp = gb.covered_neighbors(posx, board)
+            if gb.is_all_safe(posx, board):
+                for elem in tmp:
+                    if elem not in fset:
+                        fset.append(elem)
+            else:
+                sset.append(posx)
+        for idx in sset:
+            # marked determined mines before going back to safe set
+            if gb.is_all_mine(idx, board):
+                for posy in gb.covered_neighbors(idx, board):
+                    board.mark(posy)
+                    gb.update_neighbors(posy, board)
+        for idx in sset:
+            if gb.is_all_safe(idx, board):
+                tmp = gb.covered_neighbors(idx, board)
+                for elem in tmp:
+                    if elem not in fset:
+                        fset.append(elem)
+                sset.remove(idx)
+        for idx in sset:
+            if board.cell_matrix[idx[0]][idx[1]]:
+                sset.remove(idx)
+    return board.value_matrix
+
 def constraint_satisfaction(fringe, board):
     """
     based on a list of covered cells and the situation of their neighbors (the number of uncovered neighbors, the number

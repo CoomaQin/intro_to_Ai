@@ -2,11 +2,11 @@ import game_board as gb
 from draw import draw_board
 from alg import TSMP, constraint_satisfaction_gauss, constraint_satisfaction
 
-# b = gb.Board(10, 20)
-# print(b.mine_list)
-# m = TSMP(b, True, True)
-# print(m)
-# print('the number of mines are queried: ' + str(b.boom))
+b = gb.Board(10, 20)
+print(b.mine_list)
+m = TSMP(b, True, True)
+print(m)
+print('the number of mines are queried: ' + str(b.boom))
 
 # test csp
 # b = gb.Board(3, 0)
