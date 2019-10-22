@@ -119,7 +119,7 @@ class Board:
         :param idx: the position of the cell
         :return:
         """
-        if self.cell_matrix[idx[0]][idx[1]] == 'uncovered':
+        if self.cell_matrix[idx[0]][idx[1]] == 'uncovered' or self.cell_matrix[idx[0]][idx[1]] == 'not a mine':
             raise ValueError('cell ' + str(idx) + ' has been queried')
         self.cell_matrix[idx[0]][idx[1]].status = 'marked'
         self.value_matrix[idx[0], idx[1]] = 10

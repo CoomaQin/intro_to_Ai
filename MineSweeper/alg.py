@@ -2,7 +2,11 @@ import game_board as gb
 import numpy as np
 from itertools import combinations
 import sympy as sp
+<<<<<<< HEAD
 from draw import draw_board
+=======
+
+>>>>>>> 44a6a0e832ea0b558bdd39dd37f94a7f96bf3a2e
 
 def DSSP(board):
     # set of cells can be safely queried
