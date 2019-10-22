@@ -25,4 +25,5 @@ from itertools import combinations
 # print(np.linalg.matrix_rank(v))
 # r1 = np.linalg.matrix_rank(a)
 # print(r1)
-
+a = np.ones([3, 3], dtype=int)
+print(a.shape)

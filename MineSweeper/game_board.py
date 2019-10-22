@@ -274,6 +274,8 @@ def improved_guess(fringe, board):
                 sum_comb += comb_num
         if int(sum_comb) == 0:
             sum_comb = 1
+        if int(outside_num) == 0:
+            outside_num = 1
         if max_comb / sum_comb >= (outside_num - mostlikely_mines_left_num) / outside_num:
             return True, mostlikely_group
         else:
