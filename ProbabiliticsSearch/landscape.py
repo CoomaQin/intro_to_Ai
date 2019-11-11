@@ -67,36 +67,50 @@ class board:
             # update Tij in pos
             # cellpos.Tij = cellpos.prob_failure * cellpos.T_ij / (
             #         cellpos.prob_failure * cellpos.T_ij + (1 - cellpos.T_ij))
+
             # update prob_list
             for i in range(self.dim):
                 for j in range(self.dim):
                     self.prob_list[self.dim * i + j] = self.cell_matrix[i][j].T_ij
-            self.prob_list[pos[0] * self.dim + pos[1]] = 1 - sum(self.prob_list) + self.prob_list[pos[0] * self.dim + pos[1]]
+            self.prob_list[pos[0] * self.dim + pos[1]] = 1 - sum(self.prob_list) + self.prob_list[
+                pos[0] * self.dim + pos[1]]
+            # a simpler approach to update Tij in pos since /sum_i P(T in cell i) = 1
             cellpos.T_ij = self.prob_list[pos[0] * self.dim + pos[1]]
         return False
 
 
-def play(num):
+def play_rule1(num):
     b = board(num)
+    count = 0
     print(b.landscape_matrix)
     print(b.target_pos)
     success = False
     while not success:
-    # for i in range(50):
         pos_idx = b.prob_list.index(max(b.prob_list))
         pos = [pos_idx // num, pos_idx % num]
-        print(pos_idx)
-        print(b.prob_list)
+        print("search: ", pos_idx)
+        # print(b.prob_list)
         success = b.observe(pos)
-    print("find treasure")
+        count += 1
+    print("find treasure with " + str(count) + " steps")
 
 
-play(3)
-# b = board(3)
-# print(b.landscape_matrix)
-# print(b.target_pos)
-# _ = b.observe([0, 0])
-# print(b.prob_list)
-# _ = b.observe([0, 1])
-# print(b.prob_list)
-
+def play_rule2(num):
+    b = board(num)
+    count = 0
+    print(b.landscape_matrix)
+    print(b.target_pos)
+    success = False
+    while not success:
+        pos_idx = 0
+        prob = 0
+        for idx in range(len(b.prob_list)):
+            prob_tmp = b.prob_list[idx] * b.cell_matrix[idx // num][idx % num].prob_failure
+            if prob_tmp > prob:
+                prob = prob_tmp
+                pos_idx = idx
+        pos = [pos_idx // num, pos_idx % num]
+        print("search:", pos_idx)
+        success = b.observe(pos)
+        count += 1
+    print("find treasure with " + str(count) + " steps")
