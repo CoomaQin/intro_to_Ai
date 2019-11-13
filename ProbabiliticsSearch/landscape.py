@@ -241,3 +241,64 @@ def play_moving(num):
         success = b.search(pos)
         count += 1
     print("find treasure with " + str(count) + " steps")
+
+
+def play_rule1Agent(num):
+    b = board(num)
+    count = 0
+    loc = [0, 0]
+    index = 0
+    locUtility = 0
+    bestCellUtility = 0
+    UtilitySucc = 1000
+    UtilityFail = 5
+    eVal = 0
+    Discount = .65
+    print(b.landscape_matrix)
+    print(b.target_pos)
+    success = False
+    while not success:
+        pos_idx = b.prob_list.index(max(b.prob_list))
+        pos = [pos_idx // num, pos_idx % num]
+        if (loc[0] == pos[0] and loc[1] == pos[1]):
+            print("search: ", pos_idx)
+            # print(b.prob_list)
+            success = b.observe(pos)
+        else:
+            locUtility = b.prob_list[loc[0] * b.dim + loc[1]] * UtilitySucc + (
+                        1 - b.prob_list[loc[0] * b.dim + loc[1]] + b.prob_list[loc[0] * b.dim + loc[1]] *
+                        b.cell_matrix[loc[0]][loc[1]].prob_failure) * UtilityFail
+            for i in range(abs(loc[0] - pos[0])):
+                if (loc[0] > pos[0]):
+                    index = i * -1
+                else:
+                    index = i
+                bestCellUtility += (Discount ** abs(index)) * (
+                            b.prob_list[(loc[0] + index) * b.dim + loc[1]] * UtilitySucc + (
+                                1 - b.prob_list[(loc[0] + index) * b.dim + loc[1]] + b.prob_list[
+                            (loc[0] + index) * b.dim + loc[1]] * b.cell_matrix[loc[0] + index][
+                                    loc[1]].prob_failure) * UtilityFail)
+
+            for j in range(abs(loc[1] - pos[1])):
+                if (loc[1] > pos[1]):
+                    index = j * -1
+                else:
+                    index = j
+                bestCellUtility += (Discount ** (abs(index) + abs(loc[0] - pos[0]))) * (
+                            b.prob_list[pos[0] * b.dim + (loc[1] + index)] * UtilitySucc + (
+                                1 - b.prob_list[pos[0] * b.dim + (loc[1] + index)] + b.prob_list[
+                            pos[0] * b.dim + (loc[1] + index)] * b.cell_matrix[pos[0]][
+                                    loc[1] + index].prob_failure) * UtilityFail)
+            if (locUtility > bestCellUtility):
+                success = b.observe(pos)
+            else:
+                if (loc[0] > pos[0]):
+                    loc[0] -= 1
+                elif (loc[0] < pos[0]):
+                    loc[0] += 1
+                elif (loc[1] > pos[1]):
+                    loc[1] -= 1
+                elif (loc[1] < pos[1]):
+                    loc[1] += 1
+        count += 1
+    print("find treasure with " + str(count) + " steps")
