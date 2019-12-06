@@ -1,10 +1,11 @@
 import landscape as map
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
 
-map.play_moving(20)
+h = map.play_rule1(30)
+# h = map.play_rule2(30)
+# h = map.play_moving(30)
+ax = sns.heatmap(h.reshape([30, 30]), linewidth=0.5)
+plt.show()
 
-# b = map.moving_board(3)
-# print(b.landscape_matrix)
-# _ = b.search([0, 0])
-# print(b.beliefs)
-# _ = b.search([0, 1])
-# print(b.beliefs)

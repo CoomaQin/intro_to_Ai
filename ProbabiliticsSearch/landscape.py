@@ -168,7 +168,7 @@ class moving_board:
             self.tracker_report = random.choice(self.terrain)
 
     def update_belief(self):
-        beta = 10
+        beta = 1
         for k in range(self.num):
             pos = [k // self.dim, k % self.dim]
             k_neighbor = self.get_neighbors(pos)
@@ -180,6 +180,7 @@ class moving_board:
             for n in k_neighbor:
                 right_belief += self.beliefs[n[0] * self.dim + n[1]] / len(k_neighbor)
             self.beliefs[k] = right_belief * left_belief
+        self.MaxMinNormalization()
         print(self.beliefs)
 
     def search(self, pos):
@@ -192,21 +193,28 @@ class moving_board:
             self.update_belief()
             return False
 
+    def MaxMinNormalization(self):
+        for elem in self.beliefs:
+            elem = (elem - min(self.beliefs)) / (max(self.beliefs) - min(self.beliefs))
+
 
 def play_rule1(num):
     b = board(num)
     count = 0
     print(b.landscape_matrix)
     print(b.target_pos)
+    heat_num = np.zeros(num ** 2, dtype=int)
     success = False
     while not success:
         pos_idx = b.prob_list.index(max(b.prob_list))
         pos = [pos_idx // num, pos_idx % num]
         print("search: ", pos_idx)
         # print(b.prob_list)
+        heat_num[pos_idx] += 1
         success = b.observe(pos)
         count += 1
     print("find treasure with " + str(count) + " steps")
+    return heat_num
 
 
 def play_rule2(num):
@@ -214,6 +222,7 @@ def play_rule2(num):
     count = 0
     print(b.landscape_matrix)
     print(b.target_pos)
+    heat_num = np.zeros(num ** 2, dtype=int)
     success = False
     while not success:
         pos_idx = 0
@@ -225,22 +234,27 @@ def play_rule2(num):
                 pos_idx = idx
         pos = [pos_idx // num, pos_idx % num]
         print("search:", pos_idx)
+        heat_num[pos_idx] += 1
         success = b.observe(pos)
         count += 1
     print("find treasure with " + str(count) + " steps")
+    return heat_num
 
 
 def play_moving(num):
     b = moving_board(num)
     count = 0
     success = False
+    heat_num = np.zeros(num ** 2, dtype=int)
     while not success:
         pos_idx = b.beliefs.index(max(b.beliefs))
         pos = [pos_idx // num, pos_idx % num]
         print("search:", pos_idx)
         success = b.search(pos)
+        heat_num[pos_idx] += 1
         count += 1
     print("find treasure with " + str(count) + " steps")
+    return heat_num
 
 
 def play_rule1Agent(num):
@@ -266,18 +280,18 @@ def play_rule1Agent(num):
             success = b.observe(pos)
         else:
             locUtility = b.prob_list[loc[0] * b.dim + loc[1]] * UtilitySucc + (
-                        1 - b.prob_list[loc[0] * b.dim + loc[1]] + b.prob_list[loc[0] * b.dim + loc[1]] *
-                        b.cell_matrix[loc[0]][loc[1]].prob_failure) * UtilityFail
+                    1 - b.prob_list[loc[0] * b.dim + loc[1]] + b.prob_list[loc[0] * b.dim + loc[1]] *
+                    b.cell_matrix[loc[0]][loc[1]].prob_failure) * UtilityFail
             for i in range(abs(loc[0] - pos[0])):
                 if (loc[0] > pos[0]):
                     index = i * -1
                 else:
                     index = i
                 bestCellUtility += (Discount ** abs(index)) * (
-                            b.prob_list[(loc[0] + index) * b.dim + loc[1]] * UtilitySucc + (
-                                1 - b.prob_list[(loc[0] + index) * b.dim + loc[1]] + b.prob_list[
-                            (loc[0] + index) * b.dim + loc[1]] * b.cell_matrix[loc[0] + index][
-                                    loc[1]].prob_failure) * UtilityFail)
+                        b.prob_list[(loc[0] + index) * b.dim + loc[1]] * UtilitySucc + (
+                        1 - b.prob_list[(loc[0] + index) * b.dim + loc[1]] + b.prob_list[
+                    (loc[0] + index) * b.dim + loc[1]] * b.cell_matrix[loc[0] + index][
+                            loc[1]].prob_failure) * UtilityFail)
 
             for j in range(abs(loc[1] - pos[1])):
                 if (loc[1] > pos[1]):
@@ -285,10 +299,10 @@ def play_rule1Agent(num):
                 else:
                     index = j
                 bestCellUtility += (Discount ** (abs(index) + abs(loc[0] - pos[0]))) * (
-                            b.prob_list[pos[0] * b.dim + (loc[1] + index)] * UtilitySucc + (
-                                1 - b.prob_list[pos[0] * b.dim + (loc[1] + index)] + b.prob_list[
-                            pos[0] * b.dim + (loc[1] + index)] * b.cell_matrix[pos[0]][
-                                    loc[1] + index].prob_failure) * UtilityFail)
+                        b.prob_list[pos[0] * b.dim + (loc[1] + index)] * UtilitySucc + (
+                        1 - b.prob_list[pos[0] * b.dim + (loc[1] + index)] + b.prob_list[
+                    pos[0] * b.dim + (loc[1] + index)] * b.cell_matrix[pos[0]][
+                            loc[1] + index].prob_failure) * UtilityFail)
             if (locUtility > bestCellUtility):
                 success = b.observe(pos)
             else:
