@@ -158,16 +158,16 @@ def fully_connected_backward(dout, caches):
     return da, dw, db
 
 
-def softmax_cost(y, y_hat):
-    return -np.sum(y * np.log(y_hat), axis=1)
-
-
-def softmax(z):
-    return np.exp(z) / np.sum(np.exp(z), axis=1, keepdims=True)
-
-
-def softmax_back(softmax, Y):
-    return (softmax - Y) / softmax.shape[0]
+# def softmax_cost(y, y_hat):
+#     return -np.sum(y * np.log(y_hat), axis=1)
+#
+#
+# def softmax(z):
+#     return np.exp(z) / np.sum(np.exp(z), axis=1, keepdims=True)
+#
+#
+# def softmax_back(softmax, Y):
+#     return (softmax - Y) / softmax.shape[0]
 
 
 def batchnorm_forward(x, gamma, beta, running_mu, running_sigma, run='train'):
