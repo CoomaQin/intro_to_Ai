@@ -67,7 +67,13 @@ class ColorizationCNN:
                    "W5": np.random.randn(3, 3, 256, 256) / np.sqrt(52428 / 2), "B5": np.zeros(256),
                    "W6": np.random.randn(3, 3, 256, 512) / np.sqrt(6400 / 2), "B6": np.zeros(512),
                    "W7": np.random.randn(3, 3, 512, 512) / np.sqrt(12800 / 2), "B7": np.zeros(512),
-                   "W8": np.random.randn(3, 3, 512, 256) / np.sqrt(12800 / 2), "B8": np.zeros(256)}
+                   "W8": np.random.randn(3, 3, 512, 256) / np.sqrt(12800 / 2), "B8": np.zeros(256),
+                   "W9": np.random.randn(1, 1, 256, 256) / np.sqrt(12800 / 2), "B9": np.zeros(256),
+                   "W10": np.random.randn(3, 3, 256, 128) / np.sqrt(6400 / 2), "B10": np.zeros(128),
+                   "W11": np.random.randn(3, 3, 128, 64) / np.sqrt(3200 / 2), "B11": np.zeros(64),
+                   "W12": np.random.randn(3, 3, 64, 64) / np.sqrt(3200 / 2), "B12": np.zeros(64),
+                   "W13": np.random.randn(3, 3, 64, 32) / np.sqrt(1600 / 2), "B13": np.zeros(32),
+                   "W14": np.random.randn(3, 3, 32, 2) / np.sqrt(1600 / 2), "B14": np.zeros(2)}
         # Init adam running means
         for key in weights:
             self._rms_velocity[key] = 0
@@ -82,7 +88,13 @@ class ColorizationCNN:
                   "gamma5": np.ones(256), "beta5": np.zeros(256),
                   "gamma6": np.ones(512), "beta6": np.zeros(512),
                   "gamma7": np.ones(512), "beta7": np.zeros(512),
-                  "gamma8": np.ones(256), "beta8": np.zeros(256)}
+                  "gamma8": np.ones(256), "beta8": np.zeros(256),
+                  "gamma9": np.ones(256), "beta9": np.zeros(256),
+                  "gamma10": np.ones(128), "beta10": np.zeros(128),
+                  "gamma11": np.ones(64), "beta11": np.zeros(64),
+                  "gamma12": np.ones(64), "beta12": np.zeros(64),
+                  "gamma13": np.ones(32), "beta13": np.zeros(32),
+                  "gamma14": np.ones(2), "beta14": np.zeros(2)}
 
         return params
 
@@ -94,7 +106,13 @@ class ColorizationCNN:
                      "running_mu_5": np.zeros(256), "running_sigma_5": np.zeros(256),
                      "running_mu_6": np.zeros(512), "running_sigma_6": np.zeros(512),
                      "running_mu_7": np.zeros(512), "running_sigma_7": np.zeros(512),
-                     "running_mu_8": np.zeros(256), "running_sigma_8": np.zeros(256)}
+                     "running_mu_8": np.zeros(256), "running_sigma_8": np.zeros(256),
+                     "running_mu_9": np.zeros(256), "running_sigma_9": np.zeros(256),
+                     "running_mu_10": np.zeros(128), "running_sigma_10": np.zeros(128),
+                     "running_mu_11": np.zeros(64), "running_sigma_11": np.zeros(64),
+                     "running_mu_12": np.zeros(64), "running_sigma_12": np.zeros(64),
+                     "running_mu_13": np.zeros(32), "running_sigma_13": np.zeros(32),
+                     "running_mu_14": np.zeros(2), "running_sigma_14": np.zeros(2)}
 
         return bn_params
 
@@ -103,6 +121,9 @@ class ColorizationCNN:
         y = model_inputs["y"]
 
         caches = {}
+        """
+        Encoder
+        """
         # conv1
         # kernels: 64 × (3 × 3)
         # stride: 2 × 2
@@ -195,9 +216,87 @@ class ColorizationCNN:
 
         Pool8, caches["Pool8"] = max_pooling(caches["A8"], 1)
 
+        """
+        Fusion
+        """
+        # TODO: fusion is missing! Need to use inception-ResNet-v2
+        # conv9
+        # kernels: 256 × (1 × 1)
+        # stride: 1 × 1
+        Z9, caches["Z9"] = conv_forward_naive(Pool8, weights["W9"], weights["B9"], {'pad': 1, 'stride': 1})
+        BN9, bn_params["running_mu_9"], bn_params["running_sigma_9"], caches["BN9"] = batchnorm_forward(Z9, params[
+            "gamma9"], params["beta9"], bn_params["running_mu_9"], bn_params["running_sigma_9"], run)
 
+        caches["A9"] = relu(BN9)
 
-        return Pool8, caches
+        Pool9, caches["Pool9"] = max_pooling(caches["A9"], 1)
+
+        """
+        Decoder
+        """
+
+        # conv10
+        # kernels: 256 × (1 × 1)
+        # stride: 1 × 1
+        Z10, caches["Z10"] = conv_forward_naive(Pool9, weights["W10"], weights["B10"], {'pad': 1, 'stride': 1})
+        BN10, bn_params["running_mu_10"], bn_params["running_sigma_10"], caches["BN10"] = batchnorm_forward(Z10, params[
+            "gamma10"], params["beta10"], bn_params["running_mu_10"], bn_params["running_sigma_10"], run)
+
+        caches["A10"] = relu(BN10)
+
+        Pool10, caches["Pool10"] = max_pooling(caches["A10"], 1)
+
+        # TODO: upsampling layer1 is missing here!
+
+        # conv11
+        # kernels: 128 × (3 × 3)
+        # stride: 1 × 1
+        Z11, caches["Z11"] = conv_forward_naive(Pool10, weights["W11"], weights["B11"], {'pad': 1, 'stride': 1})
+        BN11, bn_params["running_mu_11"], bn_params["running_sigma_11"], caches["BN11"] = batchnorm_forward(Z11, params[
+            "gamma11"], params["beta11"], bn_params["running_mu_11"], bn_params["running_sigma_11"], run)
+
+        caches["A11"] = relu(BN11)
+
+        Pool11, caches["Pool11"] = max_pooling(caches["A11"], 1)
+
+        # conv12
+        # kernels: 64 × (3 × 3)
+        # stride: 1 × 1
+        Z12, caches["Z12"] = conv_forward_naive(Pool11, weights["W12"], weights["B12"], {'pad': 1, 'stride': 1})
+        BN12, bn_params["running_mu_12"], bn_params["running_sigma_12"], caches["BN12"] = batchnorm_forward(Z12, params[
+            "gamma12"], params["beta12"], bn_params["running_mu_12"], bn_params["running_sigma_12"], run)
+
+        caches["A12"] = relu(BN12)
+
+        Pool12, caches["Pool12"] = max_pooling(caches["A12"], 1)
+
+        # TODO: upsampling layer2 is missing here!
+
+        # conv13
+        # kernels: 64 × (3 × 3)
+        # stride: 1 × 1
+        Z13, caches["Z13"] = conv_forward_naive(Pool12, weights["W13"], weights["B13"], {'pad': 1, 'stride': 1})
+        BN13, bn_params["running_mu_13"], bn_params["running_sigma_13"], caches["BN13"] = batchnorm_forward(Z13, params[
+            "gamma13"], params["beta13"], bn_params["running_mu_13"], bn_params["running_sigma_13"], run)
+
+        caches["A13"] = relu(BN13)
+
+        Pool13, caches["Pool13"] = max_pooling(caches["A13"], 1)
+
+        # conv14
+        # kernels: 2 × (3 × 3)
+        # stride: 1 × 1
+        Z14, caches["Z14"] = conv_forward_naive(Pool13, weights["W14"], weights["B14"], {'pad': 1, 'stride': 1})
+        BN14, bn_params["running_mu_14"], bn_params["running_sigma_14"], caches["BN14"] = batchnorm_forward(Z14, params[
+            "gamma14"], params["beta14"], bn_params["running_mu_14"], bn_params["running_sigma_14"], run)
+
+        caches["A14"] = relu(BN14)
+
+        Pool14, caches["Pool14"] = max_pooling(caches["A10"], 1)
+
+        # TODO: upsampling layer3 is missing here!
+
+        return Pool14, caches
 
     def backward_propagate(self, inputs, caches):
         x = inputs['x']
