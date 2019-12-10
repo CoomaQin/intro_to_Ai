@@ -39,7 +39,7 @@ def conv_fast(x, w_filter, b, parameters):
     cache = (x, w_filter, b, padding, stride)
 
     N, H, W, C = x.shape
-
+    print(H + 2 * padding - w_filter.shape[0])
     assert (H + 2 * padding - w_filter.shape[0]) % stride == 0
     assert (W + 2 * padding - w_filter.shape[1]) % stride == 0
 

@@ -14,7 +14,6 @@ def conv_forward_naive(x, weight, b, parameters):
     x_prev_pad = np.pad(x, ((0, 0), (pad, pad), (pad, pad), (0, 0)), 'constant', constant_values=0)
 
     Z = np.zeros((m, n_H, n_W, n_C))
-
     caches = (x, weight, b, pad, stride)
 
     for i in range(m):

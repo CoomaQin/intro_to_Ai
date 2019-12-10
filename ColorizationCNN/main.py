@@ -58,8 +58,16 @@ class ColorizationCNN:
         self._bn_params = self.init_bn_params()
 
     def init_weights(self):
-        weights = {"W1": np.random.randn(1, 1, 1, 16) / np.sqrt(16384 / 2), "B1": np.zeros(16),
-                   "W2": np.random.randn(4624, 2048) / np.sqrt(4624 / 2), "B2": np.zeros(2048)}
+        # W.shape: (window of filter, window of filter, channel of the previous layer, channel of this layer)
+        # W = np.random.randn(n) / sqrt(n)  calibrating the variances with 1/sqrt(n)
+        weights = {"W1": np.random.randn(3, 3, 1, 64) / np.sqrt(3276 / 2), "B1": np.zeros(64),
+                   "W2": np.random.randn(3, 3, 64, 128) / np.sqrt(52428 / 2), "B2": np.zeros(128),
+                   "W3": np.random.randn(3, 3, 128, 128) / np.sqrt(104857 / 2), "B3": np.zeros(128),
+                   "W4": np.random.randn(3, 3, 128, 256) / np.sqrt(26214 / 2), "B4": np.zeros(256),
+                   "W5": np.random.randn(3, 3, 256, 256) / np.sqrt(52428 / 2), "B5": np.zeros(256),
+                   "W6": np.random.randn(3, 3, 256, 512) / np.sqrt(6400 / 2), "B6": np.zeros(512),
+                   "W7": np.random.randn(3, 3, 512, 512) / np.sqrt(12800 / 2), "B7": np.zeros(512),
+                   "W8": np.random.randn(3, 3, 512, 256) / np.sqrt(12800 / 2), "B8": np.zeros(256)}
         # Init adam running means
         for key in weights:
             self._rms_velocity[key] = 0
@@ -67,12 +75,26 @@ class ColorizationCNN:
         return weights
 
     def init_params(self):
-        params = {"gamma1": np.ones(16), "beta1": np.zeros(16)}
+        params = {"gamma1": np.ones(64), "beta1": np.zeros(64),
+                  "gamma2": np.ones(128), "beta2": np.zeros(128),
+                  "gamma3": np.ones(128), "beta3": np.zeros(128),
+                  "gamma4": np.ones(256), "beta4": np.zeros(256),
+                  "gamma5": np.ones(256), "beta5": np.zeros(256),
+                  "gamma6": np.ones(512), "beta6": np.zeros(512),
+                  "gamma7": np.ones(512), "beta7": np.zeros(512),
+                  "gamma8": np.ones(256), "beta8": np.zeros(256)}
 
         return params
 
     def init_bn_params(self):
-        bn_params = {"running_mu_1": np.zeros(16), "running_sigma_1": np.zeros(16)}
+        bn_params = {"running_mu_1": np.zeros(64), "running_sigma_1": np.zeros(64),
+                     "running_mu_2": np.zeros(128), "running_sigma_2": np.zeros(128),
+                     "running_mu_3": np.zeros(128), "running_sigma_3": np.zeros(128),
+                     "running_mu_4": np.zeros(256), "running_sigma_4": np.zeros(256),
+                     "running_mu_5": np.zeros(256), "running_sigma_5": np.zeros(256),
+                     "running_mu_6": np.zeros(512), "running_sigma_6": np.zeros(512),
+                     "running_mu_7": np.zeros(512), "running_sigma_7": np.zeros(512),
+                     "running_mu_8": np.zeros(256), "running_sigma_8": np.zeros(256)}
 
         return bn_params
 
@@ -81,25 +103,101 @@ class ColorizationCNN:
         y = model_inputs["y"]
 
         caches = {}
-
-        Z1, caches["Z1"] = conv_fast(x, weights["W1"], weights["B1"], {'pad': 1, 'stride': 1})
-
+        # conv1
+        # kernels: 64 × (3 × 3)
+        # stride: 2 × 2
+        Z1, caches["Z1"] = conv_forward_naive(x, weights["W1"], weights["B1"], {'pad': 1, 'stride': 2})
         BN1, bn_params["running_mu_1"], bn_params["running_sigma_1"], caches["BN1"] = batchnorm_forward(Z1, params[
             "gamma1"], params["beta1"], bn_params["running_mu_1"], bn_params["running_sigma_1"], run)
 
         caches["A1"] = relu(BN1)
 
-        Pool1, caches["Pool1"] = max_pooling(caches["A1"], 2)
+        Pool1, caches["Pool1"] = max_pooling(caches["A1"], 1)
 
-        pool1_reshape = Pool1.reshape(Pool1.shape[0], Pool1.shape[1] * Pool1.shape[2] * Pool1.shape[3])
+        # conv2
+        # kernels: 128 × (3 × 3)
+        # stride: 1 × 1
+        Z2, caches["Z2"] = conv_forward_naive(Pool1, weights["W2"], weights["B2"], {'pad': 1, 'stride': 1})
 
-        Z2, caches["Z2"] = fully_connected(pool1_reshape, weights["W2"], weights["B2"])
+        BN2, bn_params["running_mu_2"], bn_params["running_sigma_2"], caches["BN2"] = batchnorm_forward(Z2, params[
+            "gamma2"], params["beta2"], bn_params["running_mu_2"], bn_params["running_sigma_2"], run)
 
-        fc_out = Z2
-        # caches["A2"] = softmax(Z2)
-        # cost = np.mean(softmax_cost(y, caches["A2"]))
+        caches["A2"] = relu(BN2)
 
-        return fc_out, caches
+        Pool2, caches["Pool2"] = max_pooling(caches["A2"], 1)
+
+        # conv3
+        # kernels: 128 × (3 × 3)
+        # stride: 2 × 2
+        Z3, caches["Z3"] = conv_forward_naive(Pool2, weights["W3"], weights["B3"], {'pad': 1, 'stride': 2})
+        BN3, bn_params["running_mu_3"], bn_params["running_sigma_3"], caches["BN3"] = batchnorm_forward(Z3, params[
+            "gamma3"], params["beta3"], bn_params["running_mu_3"], bn_params["running_sigma_3"], run)
+
+        caches["A3"] = relu(BN3)
+
+        Pool3, caches["Pool3"] = max_pooling(caches["A3"], 1)
+
+        # conv4
+        # kernels: 256 × (3 × 3)
+        # stride: 1 × 1
+        Z4, caches["Z4"] = conv_forward_naive(Pool3, weights["W4"], weights["B4"], {'pad': 1, 'stride': 1})
+        BN4, bn_params["running_mu_4"], bn_params["running_sigma_4"], caches["BN4"] = batchnorm_forward(Z4, params[
+            "gamma4"], params["beta4"], bn_params["running_mu_4"], bn_params["running_sigma_4"], run)
+
+        caches["A4"] = relu(BN4)
+
+        Pool4, caches["Pool4"] = max_pooling(caches["A4"], 1)
+
+        # conv5
+        # kernels: 256 × (3 × 3)
+        # stride: 2 × 2
+        Z5, caches["Z5"] = conv_forward_naive(Pool4, weights["W5"], weights["B5"], {'pad': 1, 'stride': 2})
+        BN5, bn_params["running_mu_5"], bn_params["running_sigma_5"], caches["BN5"] = batchnorm_forward(Z5, params[
+            "gamma5"], params["beta5"], bn_params["running_mu_5"], bn_params["running_sigma_5"], run)
+
+        caches["A5"] = relu(BN5)
+
+        Pool5, caches["Pool5"] = max_pooling(caches["A5"], 1)
+
+        # conv6
+        # kernels: 512 × (3 × 3)
+        # stride: 1 × 1
+        Z6, caches["Z6"] = conv_forward_naive(Pool5, weights["W6"], weights["B6"], {'pad': 1, 'stride': 1})
+
+        BN6, bn_params["running_mu_6"], bn_params["running_sigma_6"], caches["BN6"] = batchnorm_forward(Z6, params[
+            "gamma6"], params["beta6"], bn_params["running_mu_6"], bn_params["running_sigma_6"], run)
+
+        caches["A6"] = relu(BN6)
+
+        Pool6, caches["Pool6"] = max_pooling(caches["A6"], 1)
+
+        # conv7
+        # kernels: 512 × (3 × 3)
+        # stride: 1 × 1
+        Z7, caches["Z7"] = conv_forward_naive(Pool6, weights["W7"], weights["B7"], {'pad': 1, 'stride': 1})
+
+        BN7, bn_params["running_mu_7"], bn_params["running_sigma_7"], caches["BN7"] = batchnorm_forward(Z7, params[
+            "gamma7"], params["beta7"], bn_params["running_mu_7"], bn_params["running_sigma_7"], run)
+
+        caches["A7"] = relu(BN7)
+
+        Pool7, caches["Pool7"] = max_pooling(caches["A7"], 1)
+
+        # conv8
+        # kernels: 256 × (3 × 3)
+        # stride: 1 × 1
+        Z8, caches["Z8"] = conv_forward_naive(Pool7, weights["W8"], weights["B8"], {'pad': 1, 'stride': 1})
+
+        BN8, bn_params["running_mu_8"], bn_params["running_sigma_8"], caches["BN8"] = batchnorm_forward(Z8, params[
+            "gamma8"], params["beta8"], bn_params["running_mu_8"], bn_params["running_sigma_8"], run)
+
+        caches["A8"] = relu(BN8)
+
+        Pool8, caches["Pool8"] = max_pooling(caches["A8"], 1)
+
+
+
+        return Pool8, caches
 
     def backward_propagate(self, inputs, caches):
         x = inputs['x']
