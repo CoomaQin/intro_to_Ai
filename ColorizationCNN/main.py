@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from skimage.color import rgb2hsv
 import math
 from solver.layers import conv_forward_naive, conv_back_naive, relu, relu_back, max_pooling, fully_connected, \
-    fully_connected_backward, max_pooling_back, batchnorm_forward, \
+    fully_connected_backward, max_pooling_back, batchnorm_forward, deconv_forward, deconv_backward, \
     batchnorm_backward
 from solver.layers_fast import conv_fast, conv_fast_back
 from cifar_loader import cifar10
@@ -70,10 +70,13 @@ class ColorizationCNN:
                    "W8": np.random.randn(3, 3, 512, 256) / np.sqrt(12800 / 2), "B8": np.zeros(256),
                    "W9": np.random.randn(1, 1, 256, 256) / np.sqrt(12800 / 2), "B9": np.zeros(256),
                    "W10": np.random.randn(3, 3, 256, 128) / np.sqrt(6400 / 2), "B10": np.zeros(128),
-                   "W11": np.random.randn(3, 3, 128, 64) / np.sqrt(3200 / 2), "B11": np.zeros(64),
+                   "USW1": np.random.randn(3, 3, 128, 64) / np.sqrt(800 / 2), "USB1": np.zeros(64),
+                   "W11": np.random.randn(3, 3, 64, 64) / np.sqrt(3200 / 2), "B11": np.zeros(64),
                    "W12": np.random.randn(3, 3, 64, 64) / np.sqrt(3200 / 2), "B12": np.zeros(64),
-                   "W13": np.random.randn(3, 3, 64, 32) / np.sqrt(1600 / 2), "B13": np.zeros(32),
-                   "W14": np.random.randn(3, 3, 32, 2) / np.sqrt(1600 / 2), "B14": np.zeros(2)}
+                   "USW2": np.random.randn(3, 3, 64, 32) / np.sqrt(800 / 2), "USB2": np.zeros(32),
+                   "W13": np.random.randn(3, 3, 32, 32) / np.sqrt(1600 / 2), "B13": np.zeros(32),
+                   "W14": np.random.randn(3, 3, 32, 2) / np.sqrt(1600 / 2), "B14": np.zeros(2),
+                   "USW3": np.random.randn(3, 3, 2, 2) / np.sqrt(800 / 2), "USB3": np.zeros(2)}
         # Init adam running means
         for key in weights:
             self._rms_velocity[key] = 0
@@ -157,7 +160,6 @@ class ColorizationCNN:
         caches["A3"] = relu(BN3)
 
         Pool3, caches["Pool3"] = max_pooling(caches["A3"], 1)
-
         # conv4
         # kernels: 256 × (3 × 3)
         # stride: 1 × 1
@@ -179,7 +181,6 @@ class ColorizationCNN:
         caches["A5"] = relu(BN5)
 
         Pool5, caches["Pool5"] = max_pooling(caches["A5"], 1)
-
         # conv6
         # kernels: 512 × (3 × 3)
         # stride: 1 × 1
@@ -215,7 +216,6 @@ class ColorizationCNN:
         caches["A8"] = relu(BN8)
 
         Pool8, caches["Pool8"] = max_pooling(caches["A8"], 1)
-
         """
         Fusion
         """
@@ -223,14 +223,14 @@ class ColorizationCNN:
         # conv9
         # kernels: 256 × (1 × 1)
         # stride: 1 × 1
-        Z9, caches["Z9"] = conv_forward_naive(Pool8, weights["W9"], weights["B9"], {'pad': 1, 'stride': 1})
+        Z9, caches["Z9"] = conv_forward_naive(Pool8, weights["W9"], weights["B9"], {'pad': 0, 'stride': 1})
+
         BN9, bn_params["running_mu_9"], bn_params["running_sigma_9"], caches["BN9"] = batchnorm_forward(Z9, params[
             "gamma9"], params["beta9"], bn_params["running_mu_9"], bn_params["running_sigma_9"], run)
 
         caches["A9"] = relu(BN9)
 
         Pool9, caches["Pool9"] = max_pooling(caches["A9"], 1)
-
         """
         Decoder
         """
@@ -246,12 +246,13 @@ class ColorizationCNN:
 
         Pool10, caches["Pool10"] = max_pooling(caches["A10"], 1)
 
-        # TODO: upsampling layer1 is missing here!
+        # upsampling layer1
+        US1, caches["US1"] = deconv_forward(Pool10, weights["USW1"], weights["USB1"])
 
         # conv11
         # kernels: 128 × (3 × 3)
         # stride: 1 × 1
-        Z11, caches["Z11"] = conv_forward_naive(Pool10, weights["W11"], weights["B11"], {'pad': 1, 'stride': 1})
+        Z11, caches["Z11"] = conv_forward_naive(US1, weights["W11"], weights["B11"], {'pad': 1, 'stride': 1})
         BN11, bn_params["running_mu_11"], bn_params["running_sigma_11"], caches["BN11"] = batchnorm_forward(Z11, params[
             "gamma11"], params["beta11"], bn_params["running_mu_11"], bn_params["running_sigma_11"], run)
 
@@ -269,13 +270,15 @@ class ColorizationCNN:
         caches["A12"] = relu(BN12)
 
         Pool12, caches["Pool12"] = max_pooling(caches["A12"], 1)
+        print(Pool12.shape)
 
-        # TODO: upsampling layer2 is missing here!
+        # upsampling layer2
+        US2, caches["US2"] = deconv_forward(Pool12, weights["USW2"], weights["USB2"])
 
         # conv13
         # kernels: 64 × (3 × 3)
         # stride: 1 × 1
-        Z13, caches["Z13"] = conv_forward_naive(Pool12, weights["W13"], weights["B13"], {'pad': 1, 'stride': 1})
+        Z13, caches["Z13"] = conv_forward_naive(US2, weights["W13"], weights["B13"], {'pad': 1, 'stride': 1})
         BN13, bn_params["running_mu_13"], bn_params["running_sigma_13"], caches["BN13"] = batchnorm_forward(Z13, params[
             "gamma13"], params["beta13"], bn_params["running_mu_13"], bn_params["running_sigma_13"], run)
 
@@ -287,29 +290,102 @@ class ColorizationCNN:
         # kernels: 2 × (3 × 3)
         # stride: 1 × 1
         Z14, caches["Z14"] = conv_forward_naive(Pool13, weights["W14"], weights["B14"], {'pad': 1, 'stride': 1})
+
+        print(Z14.shape)
+
         BN14, bn_params["running_mu_14"], bn_params["running_sigma_14"], caches["BN14"] = batchnorm_forward(Z14, params[
             "gamma14"], params["beta14"], bn_params["running_mu_14"], bn_params["running_sigma_14"], run)
 
         caches["A14"] = relu(BN14)
 
-        Pool14, caches["Pool14"] = max_pooling(caches["A10"], 1)
+        Pool14, caches["Pool14"] = max_pooling(caches["A14"], 1)
 
-        # TODO: upsampling layer3 is missing here!
+        # upsampling layer3
+        US3, caches["US3"] = deconv_forward(Pool14, weights["USW3"], weights["USB3"])
 
-        return Pool14, caches
+        print(US3.shape)
+        return US3, caches
 
     def backward_propagate(self, inputs, caches):
         x = inputs['x']
         y = inputs['y']
         gradients = {}
 
-        dz2, gradients["W2"], gradients["B2"] = fully_connected_backward(y.reshape([-1, 2048]), caches["Z2"])
-        dz2_reshape = dz2.reshape(caches["Pool1"][0].shape)
-        da1 = max_pooling_back(dz2_reshape, caches["Pool1"])
+        du3, gradients["USW3"], gradients["USB3"] = deconv_backward(y, caches["US3"])
+
+        da14 = max_pooling_back(du3, caches["Pool14"])
+        dz14 = relu_back(caches["A14"], da14)
+        dbn14, gradients["gamma14"], gradients["beta14"] = batchnorm_backward(dz14, caches["BN14"])
+        dz14, gradients["W14"], gradients["B14"] = conv_back_naive(dbn14, caches["Z14"])
+
+        da13 = max_pooling_back(dz14, caches["Pool13"])
+        dz13 = relu_back(caches["A13"], da13)
+        dbn13, gradients["gamma13"], gradients["beta13"] = batchnorm_backward(dz13, caches["BN13"])
+        dz13, gradients["W13"], gradients["B13"] = conv_back_naive(dbn13, caches["Z13"])
+
+        du2, gradients["USW2"], gradients["USB2"] = deconv_backward(dz13, caches["US2"])
+
+        da12 = max_pooling_back(du2, caches["Pool12"])
+        dz12 = relu_back(caches["A12"], da12)
+        dbn12, gradients["gamma12"], gradients["beta12"] = batchnorm_backward(dz12, caches["BN12"])
+        dz12, gradients["W12"], gradients["B12"] = conv_back_naive(dbn12, caches["Z12"])
+
+        da11 = max_pooling_back(dz12, caches["Pool11"])
+        dz11 = relu_back(caches["A11"], da11)
+        dbn11, gradients["gamma11"], gradients["beta11"] = batchnorm_backward(dz11, caches["BN11"])
+        dz11, gradients["W11"], gradients["B11"] = conv_back_naive(dbn11, caches["Z11"])
+
+        du1, gradients["USW1"], gradients["USB1"] = deconv_backward(dz11, caches["US1"])
+
+        da10 = max_pooling_back(du1, caches["Pool10"])
+        dz10 = relu_back(caches["A10"], da10)
+        dbn10, gradients["gamma10"], gradients["beta10"] = batchnorm_backward(dz10, caches["BN10"])
+        dz10, gradients["W10"], gradients["B10"] = conv_back_naive(dbn10, caches["Z10"])
+
+        da9 = max_pooling_back(dz10, caches["Pool9"])
+        dz9 = relu_back(caches["A9"], da9)
+        dbn9, gradients["gamma9"], gradients["beta9"] = batchnorm_backward(dz9, caches["BN9"])
+        dz9, gradients["W9"], gradients["B9"] = conv_back_naive(dbn9, caches["Z9"])
+
+        da8 = max_pooling_back(dz9, caches["Pool8"])
+        dz8 = relu_back(caches["A8"], da8)
+        dbn8, gradients["gamma8"], gradients["beta8"] = batchnorm_backward(dz8, caches["BN8"])
+        dz8, gradients["W8"], gradients["B8"] = conv_back_naive(dbn8, caches["Z8"])
+
+        da7 = max_pooling_back(dz8, caches["Pool7"])
+        dz7 = relu_back(caches["A7"], da7)
+        dbn7, gradients["gamma7"], gradients["beta7"] = batchnorm_backward(dz7, caches["BN7"])
+        dz7, gradients["W7"], gradients["B7"] = conv_back_naive(dbn7, caches["Z7"])
+
+        da6 = max_pooling_back(dz7, caches["Pool6"])
+        dz6 = relu_back(caches["A6"], da6)
+        dbn6, gradients["gamma6"], gradients["beta6"] = batchnorm_backward(dz6, caches["BN6"])
+        dz6, gradients["W6"], gradients["B6"] = conv_back_naive(dbn6, caches["Z6"])
+
+        da5 = max_pooling_back(dz6, caches["Pool5"])
+        dz5 = relu_back(caches["A5"], da5)
+        dbn5, gradients["gamma5"], gradients["beta5"] = batchnorm_backward(dz5, caches["BN5"])
+        dz5, gradients["W5"], gradients["B5"] = conv_back_naive(dbn5, caches["Z5"])
+
+        da4 = max_pooling_back(dz5, caches["Pool4"])
+        dz4 = relu_back(caches["A4"], da4)
+        dbn4, gradients["gamma4"], gradients["beta4"] = batchnorm_backward(dz4, caches["BN4"])
+        dz4, gradients["W4"], gradients["B4"] = conv_back_naive(dbn4, caches["Z4"])
+
+        da3 = max_pooling_back(dz4, caches["Pool3"])
+        dz3 = relu_back(caches["A3"], da3)
+        dbn3, gradients["gamma3"], gradients["beta3"] = batchnorm_backward(dz3, caches["BN3"])
+        dz3, gradients["W3"], gradients["B3"] = conv_back_naive(dbn3, caches["Z3"])
+
+        da2 = max_pooling_back(dz3, caches["Pool2"])
+        dz2 = relu_back(caches["A2"], da2)
+        dbn2, gradients["gamma2"], gradients["beta2"] = batchnorm_backward(dz2, caches["BN2"])
+        dz2, gradients["W2"], gradients["B2"] = conv_back_naive(dbn2, caches["Z2"])
+
+        da1 = max_pooling_back(dz2, caches["Pool1"])
         dz1 = relu_back(caches["A1"], da1)
         dbn1, gradients["gamma1"], gradients["beta1"] = batchnorm_backward(dz1, caches["BN1"])
-
-        dz1, gradients["W1"], gradients["B1"] = conv_fast_back(dbn1, caches["Z1"])
+        dz1, gradients["W1"], gradients["B1"] = conv_back_naive(dbn1, caches["Z1"])
 
         return gradients
 
@@ -374,6 +450,11 @@ for i in range(num):
 input1 = {"x": v1, "y": hs1}
 cnn1 = ColorizationCNN(input1, v1, hs1)
 cnn1.train(input1, 0.005, 2, 5)
-# output1, caches1 = cnn1.forward_propagate(input1, w1, param1, bn_param1)
-# gradients1 = cnn1.backward_propagate(output1, caches1)
-# print(hs1.reshape([2, -1]).shape == output1.shape)
+
+# W1 = np.random.randn(3, 3, 1, 64) / np.sqrt(3276 / 2)
+# B1 = np.zeros(64)
+# print(input1["x"].shape)
+# output1, caches1 = deconv_forward(input1["x"], W1, B1)
+# print(output1.shape)
+# dx, dw, db = deconv_backward(output1, caches1)
+# print(dx.shape)

@@ -75,6 +75,102 @@ def conv_back_naive(dout, cache):
     return dx, dw, db
 
 
+def deconv_forward(x, weight, b):
+    """
+    default value: kernel is 3 x 3, stride is 1, padding is 1 so that the H and W would be doubled
+    """
+    pad = 1
+    stride = 1
+
+    (m, n_h, n_w, n_C_prev) = x.shape
+    (f, f, n_C_prev, n_C) = weight.shape
+
+    n_H = int(1 + (2 * n_h + 2 * pad - f) / stride)
+    n_W = int(1 + (2 * n_w + 2 * pad - f) / stride)
+
+    caches = (x, weight, b, pad, stride)
+    Z = np.zeros((m, n_H, n_W, n_C))
+
+    n_H_pad = n_H + 2 * pad
+    n_W_pad = n_W + 2 * pad
+
+    x_prev_pad = np.zeros((m, n_H_pad, n_W_pad, n_C_prev))
+    for i in range(m):
+        for h in range(n_h):
+            for w in range(n_w):
+                for c in range(n_C_prev):
+                    x_prev_pad[i, 2 * h + 1, 2 * w + 1, c] = x[i, h, w, c]
+
+    # print(x_prev_pad[0, :, :, 0].shape)
+    for i in range(m):
+        for h in range(n_H):
+            for w in range(n_w):
+                for c in range(n_C):
+                    vert_start = h * stride
+                    vert_end = vert_start + f
+                    horiz_start = w * stride
+                    horiz_end = horiz_start + f
+                    x_slice = x_prev_pad[i, vert_start:vert_end, horiz_start:horiz_end, :]
+                    Z[i, h, w, c] = np.sum(np.multiply(x_slice, weight[:, :, :, c]))
+
+    return Z + b[None, None, None, :], caches
+
+
+def deconv_backward(dout, cache):
+    x, w_filter, b, pad, stride = cache
+
+    (m, n_h, n_w, n_C_prev) = x.shape
+    (f, f, n_C_prev, n_C) = w_filter.shape
+
+    n_H = int(1 + (2 * n_h + 2 * pad - f) / stride)
+    n_W = int(1 + (2 * n_w + 2 * pad - f) / stride)
+
+    n_H_pad = n_H + 2 * pad
+    n_W_pad = n_W + 2 * pad
+    a_prev_pad = np.zeros((m, n_H_pad, n_W_pad, n_C_prev))
+    for i in range(m):
+        for h in range(n_h):
+            for w in range(n_w):
+                for c in range(n_C_prev):
+                    a_prev_pad[i, 2 * h + 1, 2 * w + 1, c] = x[i, h, w, c]
+
+    dw = np.zeros(w_filter.shape, dtype=np.float32)
+    dx = np.zeros(x.shape, dtype=np.float32)
+
+    for h in range(f):
+        for w in range(f):
+            for p in range(n_C_prev):
+                for c in range(n_C):
+                    # go through all the individual positions that this filter affected and multiply by their dout
+                    a_slice = a_prev_pad[:, h:h + n_H * stride:stride, w:w + n_W * stride:stride, p]
+                    dw[h, w, p, c] = np.sum(a_slice * dout[:, :, :, c])
+
+    # TODO: put back in dout to get correct gradient
+    dx_pad = np.zeros((m, n_H_pad, n_W_pad, n_C_prev))
+    for i in range(m):
+        for h in range(n_h):
+            for w in range(n_w):
+                for c in range(n_C_prev):
+                    a_prev_pad[i, 2 * h + 1, 2 * w + 1, c] = dx[i, h, w, c]
+
+    for i in range(m):
+        for h_output in range(n_H):
+            for w_output in range(n_W):
+                for g in range(n_C):
+                    vert_start = h_output * stride
+                    vert_end = vert_start + f
+                    horiz_start = w_output * stride
+                    horiz_end = horiz_start + f
+                    dx_pad[i, vert_start:vert_end, horiz_start:horiz_end, :] += w_filter[:, :, :, g] * dout[
+                        i, h_output, w_output, g]
+
+    dx = dx_pad[:, pad:pad + n_h, pad:pad + n_w, :]
+
+    db = np.sum(dout, axis=(0, 1, 2))
+
+    return dx, dw, db
+
+
 def relu(x):
     return np.maximum(0, x)
 
