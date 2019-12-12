@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from skimage.color import rgb2hsv
+from skimage.color import rgb2lab
 import math
 from solver.layers import conv_forward_naive, conv_back_naive, relu, relu_back, max_pooling, fully_connected, \
     fully_connected_backward, max_pooling_back, batchnorm_forward, deconv_forward, deconv_backward, mean_equared_error, \
@@ -580,16 +580,17 @@ class ColorizationCNN:
 
 
 shape1 = x_class1.shape
+# the amount of training data
 num = 20
-v1 = np.zeros([num, shape1[1], shape1[2], 1])
-hs1 = np.zeros([num, shape1[1], shape1[2], 2])
+l1 = np.zeros([num, shape1[1], shape1[2], 1])
+ab1 = np.zeros([num, shape1[1], shape1[2], 2])
 for i in range(num):
-    hsv1 = rgb2hsv(x_class1[i, :, :, :])
-    v1[i, :, :, 0] = hsv1[:, :, 0]
-    hs1[i, :, :, :] = hsv1[:, :, 1:num]
+    lab1 = rgb2lab(x_class1[i, :, :, :])
+    l1[i, :, :, 0] = lab1[:, :, 0]
+    ab1[i, :, :, :] = lab1[:, :, 1:num]
 
-input1 = {"x": v1, "y": hs1}
-cnn1 = ColorizationCNN(input1, v1, hs1)
+input1 = {"x": l1, "y": ab1}
+cnn1 = ColorizationCNN(input1, l1, ab1)
 cnn1.train(input1, 0.005, 2, 5, 2)
 
 # W1 = np.random.randn(3, 3, 1, 64) / np.sqrt(3276 / 2)
