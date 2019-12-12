@@ -3,9 +3,11 @@ import matplotlib.pyplot as plt
 from skimage.color import rgb2hsv
 import math
 from solver.layers import conv_forward_naive, conv_back_naive, relu, relu_back, max_pooling, fully_connected, \
-    fully_connected_backward, max_pooling_back, batchnorm_forward, deconv_forward, deconv_backward, \
-    batchnorm_backward
+    fully_connected_backward, max_pooling_back, batchnorm_forward, deconv_forward, deconv_backward, mean_equared_error, \
+    batchnorm_backward, mean_equared_error_back
 from solver.layers_fast import conv_fast, conv_fast_back
+import os
+from terminaltables import AsciiTable
 from cifar_loader import cifar10
 
 cifar10.maybe_download_and_extract()
@@ -118,6 +120,130 @@ class ColorizationCNN:
                      "running_mu_14": np.zeros(2), "running_sigma_14": np.zeros(2)}
 
         return bn_params
+
+    def save_model(self, filename):
+        model = {}
+
+        for weight in self._weights:
+            model[weight] = self._weights[weight]
+
+        for param in self._params:
+            model[param] = self._params[param]
+
+        for bn in self._bn_params:
+            model[bn] = self._bn_params[bn]
+
+        np.save(filename + '.npy', model)
+        print("Successfully saved weights")
+
+    def load_model_from_file(self, filename):
+        weights = {}
+        params = {}
+        bn_params = {}
+
+        data_load = np.load(filename + '.npy', allow_pickle=True).item()
+
+        weights["W1"] = data_load.get('W1')
+        weights["W2"] = data_load.get('W2')
+        weights["W3"] = data_load.get('W3')
+        weights["W4"] = data_load.get('W4')
+        weights["W5"] = data_load.get('W5')
+        weights["W6"] = data_load.get('W6')
+        weights["W7"] = data_load.get('W7')
+        weights["W8"] = data_load.get('W8')
+        weights["W9"] = data_load.get('W9')
+        weights["W10"] = data_load.get('W10')
+        weights["W11"] = data_load.get('W11')
+        weights["W12"] = data_load.get('W12')
+        weights["W13"] = data_load.get('W13')
+        weights["W14"] = data_load.get('W14')
+
+        weights["B1"] = data_load.get('B1')
+        weights["B2"] = data_load.get('B2')
+        weights["B3"] = data_load.get('B3')
+        weights["B4"] = data_load.get('B4')
+        weights["B5"] = data_load.get('B5')
+        weights["B6"] = data_load.get('B6')
+        weights["B7"] = data_load.get('B7')
+        weights["B8"] = data_load.get('B8')
+        weights["B9"] = data_load.get('B9')
+        weights["B10"] = data_load.get('B10')
+        weights["B11"] = data_load.get('B11')
+        weights["B12"] = data_load.get('B12')
+        weights["B13"] = data_load.get('B13')
+        weights["B14"] = data_load.get('B14')
+
+        weights["USW1"] = data_load.get('USW1')
+        weights["USW2"] = data_load.get('USW2')
+        weights["USW3"] = data_load.get('USW3')
+        weights["USB1"] = data_load.get('USB1')
+        weights["USB2"] = data_load.get('USB2')
+        weights["USB3"] = data_load.get('USB3')
+
+        params["gamma1"] = data_load.get('gamma1')
+        params["beta1"] = data_load.get('beta1')
+        params["gamma2"] = data_load.get('gamma2')
+        params["beta2"] = data_load.get('beta2')
+        params["gamma3"] = data_load.get('gamma3')
+        params["beta3"] = data_load.get('beta3')
+        params["gamma3"] = data_load.get('gamma3')
+        params["beta3"] = data_load.get('beta3')
+        params["gamma4"] = data_load.get('gamma4')
+        params["beta4"] = data_load.get('beta4')
+        params["gamma5"] = data_load.get('gamma5')
+        params["beta5"] = data_load.get('beta5')
+        params["gamma6"] = data_load.get('gamma6')
+        params["beta6"] = data_load.get('beta6')
+        params["gamma7"] = data_load.get('gamma7')
+        params["beta7"] = data_load.get('beta7')
+        params["gamma8"] = data_load.get('gamma8')
+        params["beta8"] = data_load.get('beta8')
+        params["gamma9"] = data_load.get('gamma9')
+        params["beta9"] = data_load.get('beta9')
+        params["gamma10"] = data_load.get('gamma10')
+        params["beta10"] = data_load.get('beta10')
+        params["gamma11"] = data_load.get('gamma11')
+        params["beta11"] = data_load.get('beta11')
+        params["gamma12"] = data_load.get('gamma12')
+        params["beta12"] = data_load.get('beta12')
+        params["gamma13"] = data_load.get('gamma13')
+        params["beta13"] = data_load.get('beta13')
+        params["gamma14"] = data_load.get('gamma14')
+        params["beta14"] = data_load.get('beta14')
+
+        bn_params["running_mu_1"] = data_load.get('running_mu_1')
+        bn_params["running_sigma_1"] = data_load.get('running_sigma_1')
+        bn_params["running_mu_2"] = data_load.get('running_mu_2')
+        bn_params["running_sigma_2"] = data_load.get('running_sigma_2')
+        bn_params["running_mu_3"] = data_load.get('running_mu_3')
+        bn_params["running_sigma_3"] = data_load.get('running_sigma_3')
+        bn_params["running_mu_4"] = data_load.get('running_mu_4')
+        bn_params["running_sigma_4"] = data_load.get('running_sigma_4')
+        bn_params["running_mu_5"] = data_load.get('running_mu_5')
+        bn_params["running_sigma_5"] = data_load.get('running_sigma_5')
+        bn_params["running_mu_6"] = data_load.get('running_mu_6')
+        bn_params["running_sigma_6"] = data_load.get('running_sigma_6')
+        bn_params["running_mu_7"] = data_load.get('running_mu_7')
+        bn_params["running_sigma_7"] = data_load.get('running_sigma_7')
+        bn_params["running_mu_8"] = data_load.get('running_mu_8')
+        bn_params["running_sigma_8"] = data_load.get('running_sigma_8')
+        bn_params["running_mu_9"] = data_load.get('running_mu_9')
+        bn_params["running_sigma_9"] = data_load.get('running_sigma_9')
+        bn_params["running_mu_10"] = data_load.get('running_mu_10')
+        bn_params["running_sigma_10"] = data_load.get('running_sigma_10')
+        bn_params["running_mu_11"] = data_load.get('running_mu_11')
+        bn_params["running_sigma_11"] = data_load.get('running_sigma_11')
+        bn_params["running_mu_12"] = data_load.get('running_mu_12')
+        bn_params["running_sigma_12"] = data_load.get('running_sigma_12')
+        bn_params["running_mu_13"] = data_load.get('running_mu_13')
+        bn_params["running_sigma_13"] = data_load.get('running_sigma_13')
+        bn_params["running_mu_14"] = data_load.get('running_mu_14')
+        bn_params["running_sigma_14"] = data_load.get('running_sigma_14')
+        for key in weights:
+            self._rms_velocity[key] = 0
+            self._momentum_velocity[key] = 0
+
+        return weights, params, bn_params
 
     def forward_propagate(self, model_inputs, weights, params, bn_params, run='train'):
         x = model_inputs["x"]
@@ -270,7 +396,6 @@ class ColorizationCNN:
         caches["A12"] = relu(BN12)
 
         Pool12, caches["Pool12"] = max_pooling(caches["A12"], 1)
-        print(Pool12.shape)
 
         # upsampling layer2
         US2, caches["US2"] = deconv_forward(Pool12, weights["USW2"], weights["USB2"])
@@ -291,8 +416,6 @@ class ColorizationCNN:
         # stride: 1 × 1
         Z14, caches["Z14"] = conv_forward_naive(Pool13, weights["W14"], weights["B14"], {'pad': 1, 'stride': 1})
 
-        print(Z14.shape)
-
         BN14, bn_params["running_mu_14"], bn_params["running_sigma_14"], caches["BN14"] = batchnorm_forward(Z14, params[
             "gamma14"], params["beta14"], bn_params["running_mu_14"], bn_params["running_sigma_14"], run)
 
@@ -303,15 +426,19 @@ class ColorizationCNN:
         # upsampling layer3
         US3, caches["US3"] = deconv_forward(Pool14, weights["USW3"], weights["USB3"])
 
-        print(US3.shape)
-        return US3, caches
+        loss = mean_equared_error(US3, y)
+        caches["HS"] = US3
+
+        return loss, caches
 
     def backward_propagate(self, inputs, caches):
         x = inputs['x']
         y = inputs['y']
         gradients = {}
 
-        du3, gradients["USW3"], gradients["USB3"] = deconv_backward(y, caches["US3"])
+        dl = mean_equared_error_back(caches["HS"], y)
+
+        du3, gradients["USW3"], gradients["USB3"] = deconv_backward(dl, caches["US3"])
 
         da14 = max_pooling_back(du3, caches["Pool14"])
         dz14 = relu_back(caches["A14"], da14)
@@ -402,7 +529,7 @@ class ColorizationCNN:
         for key in self._params:
             self._params[key] -= lr * gradients[key]
 
-    def train(self, model_inputs, lr, epochs, batch_size):
+    def train(self, model_inputs, lr, epochs, batch_size, print_every):
 
         run_id = str(np.random.randint(1000))
 
@@ -419,7 +546,7 @@ class ColorizationCNN:
         inputs_y = model_inputs["y"]
 
         shuffle_index = np.arange(inputs_x.shape[0])
-
+        i = 0
         for e in range(epochs):
             # shuffle data
             shuffle_index = np.arange(inputs_x.shape[0])
@@ -437,6 +564,20 @@ class ColorizationCNN:
                 gradients = self.backward_propagate(batch_inputs, caches)
                 self.update_adam(gradients, i + 1, lr)
 
+                if i % print_every == 0:
+
+                    data = [["Progress", "MSE Value"],
+                            [str(int(b / float(epoch_size) * 100)) + "% " + str(e) + "/" + str(epochs), cost]]
+
+                    table = AsciiTable(data)
+                    table.title = "Stats run_" + run_id
+
+                    os.system('clear')
+                    print(table.table)
+                    print("Printing every " + str(print_every) + " iterations")
+
+                i += 1
+
 
 shape1 = x_class1.shape
 num = 20
@@ -449,7 +590,7 @@ for i in range(num):
 
 input1 = {"x": v1, "y": hs1}
 cnn1 = ColorizationCNN(input1, v1, hs1)
-cnn1.train(input1, 0.005, 2, 5)
+cnn1.train(input1, 0.005, 2, 5, 2)
 
 # W1 = np.random.randn(3, 3, 1, 64) / np.sqrt(3276 / 2)
 # B1 = np.zeros(64)

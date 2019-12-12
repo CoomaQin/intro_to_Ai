@@ -253,6 +253,18 @@ def fully_connected_backward(dout, caches):
     return da, dw, db
 
 
+def mean_equared_error(z, y):
+    h = z.shape[1]
+    w = z.shape[2]
+    return 1 / (2 * h * w) * (np.square(z - y)).mean(axis=None)
+
+
+def mean_equared_error_back(z, y):
+    h = z.shape[1]
+    w = z.shape[2]
+    return abs(z - y) / (h * w)
+
+
 # def softmax_cost(y, y_hat):
 #     return -np.sum(y * np.log(y_hat), axis=1)
 #
