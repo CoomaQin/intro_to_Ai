@@ -1,7 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from skimage.color import rgb2lab
+import skimage.color as color
 import math
+import cv2
 from solver.layers import conv_forward_naive, conv_back_naive, relu, relu_back, max_pooling, fully_connected, \
     fully_connected_backward, max_pooling_back, batchnorm_forward, deconv_forward, deconv_backward, mean_equared_error, \
     batchnorm_backward, mean_equared_error_back
@@ -22,26 +23,30 @@ y_class1 = train_y[index_of_class1]
 y_one_hot_class1 = train_[index_of_class1]
 
 
-def polt_HSV(img):
-    hsv_img = rgb2hsv(img)
-    hue_img = hsv_img[:, :, 0]
-    sau_img = hsv_img[:, :, 1]
-    value_img = hsv_img[:, :, 2]
+def polt_LAB(img):
+
+    lab_img = color.rgb2lab(img)
+    l_img = lab_img[:, :, 0]
+    a_img = lab_img[:, :, 1]
+    b_img = lab_img[:, :, 2]
     fig, (ax0, ax1, ax2, ax3) = plt.subplots(ncols=4, figsize=(8, 2))
 
     ax0.imshow(img)
     ax0.set_title("RGB image")
     ax0.axis('off')
-    ax1.imshow(hue_img, cmap='hsv')
-    ax1.set_title("Hue channel")
+    ax1.imshow(l_img, cmap="gray")
+    ax1.set_title("L channel")
     ax1.axis('off')
-    ax2.imshow(value_img)
-    ax2.set_title("Value channel")
+
+    ax2.imshow(a_img, cmap="gray")
+    ax2.set_title("a channel")
     ax2.axis('off')
-    ax3.imshow(sau_img)
-    ax3.set_title("saturation channel")
+    ax3.imshow(b_img, cmap="gray")
+    ax3.set_title("b channel")
     ax3.axis('off')
     plt.show()
+
+
 
 
 class ColorizationCNN:
@@ -546,7 +551,7 @@ class ColorizationCNN:
         inputs_y = model_inputs["y"]
 
         shuffle_index = np.arange(inputs_x.shape[0])
-        i = 0
+        it = 0
         for e in range(epochs):
             # shuffle data
             shuffle_index = np.arange(inputs_x.shape[0])
@@ -564,8 +569,7 @@ class ColorizationCNN:
                 gradients = self.backward_propagate(batch_inputs, caches)
                 self.update_adam(gradients, i + 1, lr)
 
-                if i % print_every == 0:
-
+                if it % print_every == 0:
                     data = [["Progress", "MSE Value"],
                             [str(int(b / float(epoch_size) * 100)) + "% " + str(e) + "/" + str(epochs), cost]]
 
@@ -576,22 +580,45 @@ class ColorizationCNN:
                     print(table.table)
                     print("Printing every " + str(print_every) + " iterations")
 
-                i += 1
+                it += 1
+
+    def evaluate(self, img):
+        shape = img.shape
+        l = np.zeros([1, shape[0], shape[1], 1])
+        ab_true = np.zeros([1, shape[0], shape[1], 2])
+        lab = color.rgb2lab(img)
+        l[0, :, :, 0] = lab[:, :, 0]
+        ab_true[0, :, :, :] = lab[:, :, 1:2]
+        lab_input = {"x": l, "y": ab_true}
+        _, cache = self.forward_propagate(lab_input, self._weights, self._params, self._bn_params)
+        ab = cache["HS"]
+        colorized_img = np.zeros([32, 32, 3])
+        colorized_img[:, :, 0] = l[0, :, :, 0]
+        colorized_img[:, :, 1:2] = ab[0, :, :, 1:2]
+        polt_LAB(colorized_img)
+        # plt.imshow(colorized_img)
+        # plt.show()
 
 
 shape1 = x_class1.shape
 # the amount of training data
-num = 20
+num = 1
 l1 = np.zeros([num, shape1[1], shape1[2], 1])
 ab1 = np.zeros([num, shape1[1], shape1[2], 2])
 for i in range(num):
-    lab1 = rgb2lab(x_class1[i, :, :, :])
+    lab1 = color.rgb2lab(x_class1[i, :, :, :])
     l1[i, :, :, 0] = lab1[:, :, 0]
-    ab1[i, :, :, :] = lab1[:, :, 1:num]
+    ab1[i, :, :, :] = lab1[:, :, 1:2]
 
 input1 = {"x": l1, "y": ab1}
-cnn1 = ColorizationCNN(input1, l1, ab1)
-cnn1.train(input1, 0.005, 2, 5, 2)
+
+polt_LAB(x_class1[1])
+
+# cnn1 = ColorizationCNN(input1, l1, ab1)
+# cnn1.load_model_from_file("/Users/coomaqin/PycharmProjects/intro_to_Ai/intro_to_Ai/ColorizationCNN/weights_2")
+# cnn1.evaluate(x_class1[0])
+# cnn1.train(input1, 0.005, 2, 5, 2)
+
 
 # W1 = np.random.randn(3, 3, 1, 64) / np.sqrt(3276 / 2)
 # B1 = np.zeros(64)
