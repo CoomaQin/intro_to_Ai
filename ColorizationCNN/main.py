@@ -34,14 +34,14 @@ def polt_LAB(img):
     ax0.imshow(img)
     ax0.set_title("RGB image")
     ax0.axis('off')
-    ax1.imshow(l_img, cmap="gray")
+    ax1.imshow(l_img, cmap="hsv")
     ax1.set_title("L channel")
     ax1.axis('off')
 
-    ax2.imshow(a_img, cmap="gray")
+    ax2.imshow(a_img)
     ax2.set_title("a channel")
     ax2.axis('off')
-    ax3.imshow(b_img, cmap="gray")
+    ax3.imshow(b_img)
     ax3.set_title("b channel")
     ax3.axis('off')
     plt.show()
@@ -67,23 +67,23 @@ class ColorizationCNN:
     def init_weights(self):
         # W.shape: (window of filter, window of filter, channel of the previous layer, channel of this layer)
         # W = np.random.randn(n) / sqrt(n)  calibrating the variances with 1/sqrt(n)
-        weights = {"W1": np.random.randn(3, 3, 1, 64) / np.sqrt(3276 / 2), "B1": np.zeros(64),
-                   "W2": np.random.randn(3, 3, 64, 128) / np.sqrt(52428 / 2), "B2": np.zeros(128),
-                   "W3": np.random.randn(3, 3, 128, 128) / np.sqrt(104857 / 2), "B3": np.zeros(128),
-                   "W4": np.random.randn(3, 3, 128, 256) / np.sqrt(26214 / 2), "B4": np.zeros(256),
-                   "W5": np.random.randn(3, 3, 256, 256) / np.sqrt(52428 / 2), "B5": np.zeros(256),
-                   "W6": np.random.randn(3, 3, 256, 512) / np.sqrt(6400 / 2), "B6": np.zeros(512),
-                   "W7": np.random.randn(3, 3, 512, 512) / np.sqrt(12800 / 2), "B7": np.zeros(512),
-                   "W8": np.random.randn(3, 3, 512, 256) / np.sqrt(12800 / 2), "B8": np.zeros(256),
-                   "W9": np.random.randn(1, 1, 256, 256) / np.sqrt(12800 / 2), "B9": np.zeros(256),
-                   "W10": np.random.randn(3, 3, 256, 128) / np.sqrt(6400 / 2), "B10": np.zeros(128),
-                   "USW1": np.random.randn(3, 3, 128, 64) / np.sqrt(800 / 2), "USB1": np.zeros(64),
-                   "W11": np.random.randn(3, 3, 64, 64) / np.sqrt(3200 / 2), "B11": np.zeros(64),
-                   "W12": np.random.randn(3, 3, 64, 64) / np.sqrt(3200 / 2), "B12": np.zeros(64),
-                   "USW2": np.random.randn(3, 3, 64, 32) / np.sqrt(800 / 2), "USB2": np.zeros(32),
-                   "W13": np.random.randn(3, 3, 32, 32) / np.sqrt(1600 / 2), "B13": np.zeros(32),
-                   "W14": np.random.randn(3, 3, 32, 2) / np.sqrt(1600 / 2), "B14": np.zeros(2),
-                   "USW3": np.random.randn(3, 3, 2, 2) / np.sqrt(800 / 2), "USB3": np.zeros(2)}
+        weights = {"W1": np.random.randn(3, 3, 1, 64) / np.sqrt(32 / 2), "B1": np.zeros(64),
+                   "W2": np.random.randn(3, 3, 64, 128) / np.sqrt(524 / 2), "B2": np.zeros(128),
+                   "W3": np.random.randn(3, 3, 128, 128) / np.sqrt(104 / 2), "B3": np.zeros(128),
+                   "W4": np.random.randn(3, 3, 128, 256) / np.sqrt(262 / 2), "B4": np.zeros(256),
+                   "W5": np.random.randn(3, 3, 256, 256) / np.sqrt(524 / 2), "B5": np.zeros(256),
+                   "W6": np.random.randn(3, 3, 256, 512) / np.sqrt(64 / 2), "B6": np.zeros(512),
+                   "W7": np.random.randn(3, 3, 512, 512) / np.sqrt(128 / 2), "B7": np.zeros(512),
+                   "W8": np.random.randn(3, 3, 512, 256) / np.sqrt(128 / 2), "B8": np.zeros(256),
+                   "W9": np.random.randn(1, 1, 256, 256) / np.sqrt(128 / 2), "B9": np.zeros(256),
+                   "W10": np.random.randn(3, 3, 256, 128) / np.sqrt(64 / 2), "B10": np.zeros(128),
+                   "USW1": np.random.randn(3, 3, 128, 64) / np.sqrt(8 / 2), "USB1": np.zeros(64),
+                   "W11": np.random.randn(3, 3, 64, 64) / np.sqrt(320 / 2), "B11": np.zeros(64),
+                   "W12": np.random.randn(3, 3, 64, 64) / np.sqrt(32 / 2), "B12": np.zeros(64),
+                   "USW2": np.random.randn(3, 3, 64, 32) / np.sqrt(8 / 2), "USB2": np.zeros(32),
+                   "W13": np.random.randn(3, 3, 32, 32) / np.sqrt(16 / 2), "B13": np.zeros(32),
+                   "W14": np.random.randn(3, 3, 32, 2) / np.sqrt(16 / 2), "B14": np.zeros(2),
+                   "USW3": np.random.randn(3, 3, 2, 2) / np.sqrt(8 / 2), "USB3": np.zeros(2)}
         # Init adam running means
         for key in weights:
             self._rms_velocity[key] = 0
@@ -328,7 +328,6 @@ class ColorizationCNN:
         # kernels: 512 × (3 × 3)
         # stride: 1 × 1
         Z7, caches["Z7"] = conv_forward_naive(Pool6, weights["W7"], weights["B7"], {'pad': 1, 'stride': 1})
-
         BN7, bn_params["running_mu_7"], bn_params["running_sigma_7"], caches["BN7"] = batchnorm_forward(Z7, params[
             "gamma7"], params["beta7"], bn_params["running_mu_7"], bn_params["running_sigma_7"], run)
 
@@ -365,7 +364,6 @@ class ColorizationCNN:
         """
         Decoder
         """
-
         # conv10
         # kernels: 256 × (1 × 1)
         # stride: 1 × 1
@@ -612,12 +610,12 @@ for i in range(num):
 
 input1 = {"x": l1, "y": ab1}
 
-polt_LAB(x_class1[1])
+# polt_LAB(x_class1[1])
 
-# cnn1 = ColorizationCNN(input1, l1, ab1)
-# cnn1.load_model_from_file("/Users/coomaqin/PycharmProjects/intro_to_Ai/intro_to_Ai/ColorizationCNN/weights_2")
-# cnn1.evaluate(x_class1[0])
-# cnn1.train(input1, 0.005, 2, 5, 2)
+cnn1 = ColorizationCNN(input1, l1, ab1)
+cnn1.load_model_from_file("/Users/coomaqin/PycharmProjects/intro_to_Ai/intro_to_Ai/ColorizationCNN/weights_2")
+cnn1.evaluate(x_class1[2000])
+cnn1.train(input1, 0.001, 2, 5, 2)
 
 
 # W1 = np.random.randn(3, 3, 1, 64) / np.sqrt(3276 / 2)
