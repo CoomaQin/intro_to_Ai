@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import skimage.color as color
 import math
-import cv2
+#import cv2
 from solver.layers import conv_forward_naive, conv_back_naive, relu, relu_back, max_pooling, fully_connected, \
     fully_connected_backward, max_pooling_back, batchnorm_forward, deconv_forward, deconv_backward, mean_equared_error, \
     batchnorm_backward, mean_equared_error_back
@@ -548,7 +548,7 @@ class ColorizationCNN:
                     table = AsciiTable(data)
                     table.title = "Stats run_" + run_id
 
-                    os.system('clear')
+                    #os.system('clear')
                     print(table.table)
                     print("Printing every " + str(print_every) + " iterations")
 
@@ -560,7 +560,9 @@ class ColorizationCNN:
         ab_true = np.zeros([1, shape[0], shape[1], 2])
         lab = color.rgb2lab(img)
         l[0, :, :, 0] = lab[:, :, 0]
-        ab_true[0, :, :, :] = lab[:, :, 1:2]
+        #ab_true[0, :, :, :] = lab[:, :, 1:2]
+        ab_true[0, :, :, 0] = lab[:, :, 1]
+        ab_true[0, :, :, 1] = lab[:, :, 2]
         lab_input = {"x": l, "y": ab_true}
         _, cache = self.forward_propagate(lab_input, self._weights, self._params, self._bn_params)
         ab = cache["HS"]
@@ -568,22 +570,66 @@ class ColorizationCNN:
         colorized_img[:, :, 0] = l[0, :, :, 0]
         colorized_img[:, :, 1] = ab[0, :, :, 0]
         colorized_img[:, :, 2] = ab[0, :, :, 1]
-        fig, (ax0, ax1, ax2) = plt.subplots(ncols=3, figsize=(4, 4))
+
+        l_img = lab[:, :, 0]
+        a_img = lab[:, :, 1]
+        b_img = lab[:, :, 2]
+        fig, (ax0, ax1, ax2, ax3) = plt.subplots(ncols=4, figsize=(8, 2))
+
         ax0.imshow(img)
-        ax0.set_title("original image")
+        ax0.set_title("RGB image")
         ax0.axis('off')
-        ax2.imshow(color.gray2rgb(color.rgb2gray(img)))
-        ax2.set_title("gray-scale image")
-        ax2.axis('off')
-        ax1.imshow(color.lab2rgb(colorized_img))
-        ax1.set_title("colorized image")
+        ax1.imshow(l_img)
+        ax1.set_title("L channel")
         ax1.axis('off')
+
+        ax2.imshow(a_img)
+        ax2.set_title("a channel")
+        ax2.axis('off')
+        ax3.imshow(b_img)
+        ax3.set_title("b channel")
+        ax3.axis('off')
         plt.show()
+
+        l_img = colorized_img[:, :, 0]
+        a_img = colorized_img[:, :, 1]
+        b_img = colorized_img[:, :, 2]
+        fig, (ax0, ax1, ax2, ax3, ax4) = plt.subplots(ncols=5, figsize=(10, 2))
+
+        ax0.imshow(color.lab2rgb(colorized_img))
+        ax0.set_title("RGB image")
+        ax0.axis('off')
+        ax1.imshow(l_img)
+        ax1.set_title("L channel")
+        ax1.axis('off')
+
+        ax2.imshow(a_img)
+        ax2.set_title("a channel")
+        ax2.axis('off')
+        ax3.imshow(b_img)
+        ax3.set_title("b channel")
+        ax3.axis('off')
+        ax4.imshow(color.gray2rgb(color.rgb2gray(img)))
+        ax4.set_title("gray-scale image")
+        ax4.axis('off')
+        plt.show()
+
+        #fig, (ax0, ax1, ax2) = plt.subplots(ncols=3, figsize=(4, 4))
+        #ax0.imshow(img)
+        #ax0.set_title("original image")
+        #ax0.axis('off')
+        #ax2.imshow(color.gray2rgb(color.rgb2gray(img)))
+        #ax2.set_title("gray-scale image")
+        #ax2.axis('off')
+        #ax1.imshow(color.lab2rgb(colorized_img))
+        #ax1.set_title("colorized image")
+        #ax1.axis('off')
+        #plt.show()
 
 
 shape1 = x_class1.shape
 # the amount of training data
-num = 1
+num = 80
 l1 = np.zeros([num, shape1[1], shape1[2], 1])
 ab1 = np.zeros([num, shape1[1], shape1[2], 2])
 for i in range(num):
@@ -595,10 +641,12 @@ for i in range(num):
 input1 = {"x": l1, "y": ab1}
 
 cnn1 = ColorizationCNN(input1, l1, ab1)
-cnn1.load_model_from_file("/Users/coomaqin/PycharmProjects/intro_to_Ai/intro_to_Ai/ColorizationCNN/weights_2")
-cnn1.evaluate(x_class1[2000])
-# cnn1.train(input1, 0.001, 2, 5, 2)
-
+#cnn1.load_model_from_file("/Users/Andrey/PycharmProjects/intro_to_Ai/intro_to_Ai/ColorizationCNN/weights_12")
+cnn1.train(input1, 0.02, 3, 20, 2)
+cnn1.save_model("/Users/Andrey/PycharmProjects/intro_to_Ai/intro_to_Ai/ColorizationCNN/weights_13")
+cnn1.evaluate(x_class1[1])
+cnn1.evaluate(x_class1[2])
+#cnn1.evaluate(x_class1[55])
 
 # W1 = np.random.randn(3, 3, 1, 64) / np.sqrt(3276 / 2)
 # B1 = np.zeros(64)
