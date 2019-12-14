@@ -23,32 +23,6 @@ y_class1 = train_y[index_of_class1]
 y_one_hot_class1 = train_[index_of_class1]
 
 
-def polt_LAB(img):
-
-    lab_img = color.rgb2lab(img)
-    l_img = lab_img[:, :, 0]
-    a_img = lab_img[:, :, 1]
-    b_img = lab_img[:, :, 2]
-    fig, (ax0, ax1, ax2, ax3) = plt.subplots(ncols=4, figsize=(8, 2))
-
-    ax0.imshow(img)
-    ax0.set_title("RGB image")
-    ax0.axis('off')
-    ax1.imshow(l_img, cmap="hsv")
-    ax1.set_title("L channel")
-    ax1.axis('off')
-
-    ax2.imshow(a_img)
-    ax2.set_title("a channel")
-    ax2.axis('off')
-    ax3.imshow(b_img)
-    ax3.set_title("b channel")
-    ax3.axis('off')
-    plt.show()
-
-
-
-
 class ColorizationCNN:
     _weights = {}
     _params = {}
@@ -593,9 +567,17 @@ class ColorizationCNN:
         colorized_img = np.zeros([32, 32, 3])
         colorized_img[:, :, 0] = l[0, :, :, 0]
         colorized_img[:, :, 1:2] = ab[0, :, :, 1:2]
-        polt_LAB(colorized_img)
-        # plt.imshow(colorized_img)
-        # plt.show()
+        fig, (ax0, ax1, ax2) = plt.subplots(ncols=3, figsize=(4, 4))
+        ax0.imshow(img)
+        ax0.set_title("original image")
+        ax0.axis('off')
+        ax2.imshow(color.gray2rgb(color.rgb2gray(img)))
+        ax2.set_title("gray-scale image")
+        ax2.axis('off')
+        ax1.imshow(color.lab2rgb(colorized_img))
+        ax1.set_title("colorized image")
+        ax1.axis('off')
+        plt.show()
 
 
 shape1 = x_class1.shape
@@ -606,16 +588,15 @@ ab1 = np.zeros([num, shape1[1], shape1[2], 2])
 for i in range(num):
     lab1 = color.rgb2lab(x_class1[i, :, :, :])
     l1[i, :, :, 0] = lab1[:, :, 0]
-    ab1[i, :, :, :] = lab1[:, :, 1:2]
+    ab1[i, :, :, 0] = lab1[:, :, 1]
+    ab1[i, :, :, 1] = lab1[:, :, 2]
 
 input1 = {"x": l1, "y": ab1}
-
-# polt_LAB(x_class1[1])
 
 cnn1 = ColorizationCNN(input1, l1, ab1)
 cnn1.load_model_from_file("/Users/coomaqin/PycharmProjects/intro_to_Ai/intro_to_Ai/ColorizationCNN/weights_2")
 cnn1.evaluate(x_class1[2000])
-cnn1.train(input1, 0.001, 2, 5, 2)
+# cnn1.train(input1, 0.001, 2, 5, 2)
 
 
 # W1 = np.random.randn(3, 3, 1, 64) / np.sqrt(3276 / 2)
