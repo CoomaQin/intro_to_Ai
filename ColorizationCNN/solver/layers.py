@@ -265,18 +265,6 @@ def mean_equared_error_back(z, y):
     return abs(z - y) / (h * w)
 
 
-# def softmax_cost(y, y_hat):
-#     return -np.sum(y * np.log(y_hat), axis=1)
-#
-#
-# def softmax(z):
-#     return np.exp(z) / np.sum(np.exp(z), axis=1, keepdims=True)
-#
-#
-# def softmax_back(softmax, Y):
-#     return (softmax - Y) / softmax.shape[0]
-
-
 def batchnorm_forward(x, gamma, beta, running_mu, running_sigma, run='train'):
     # mean of x along each dimension
     # Gamma is size of (C,)
