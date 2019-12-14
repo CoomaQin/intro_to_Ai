@@ -566,7 +566,8 @@ class ColorizationCNN:
         ab = cache["HS"]
         colorized_img = np.zeros([32, 32, 3])
         colorized_img[:, :, 0] = l[0, :, :, 0]
-        colorized_img[:, :, 1:2] = ab[0, :, :, 1:2]
+        colorized_img[:, :, 1] = ab[0, :, :, 0]
+        colorized_img[:, :, 2] = ab[0, :, :, 1]
         fig, (ax0, ax1, ax2) = plt.subplots(ncols=3, figsize=(4, 4))
         ax0.imshow(img)
         ax0.set_title("original image")
