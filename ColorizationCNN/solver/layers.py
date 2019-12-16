@@ -101,10 +101,9 @@ def deconv_forward(x, weight, b):
                 for c in range(n_C_prev):
                     x_prev_pad[i, 2 * h + 1, 2 * w + 1, c] = x[i, h, w, c]
 
-    # print(x_prev_pad[0, :, :, 0].shape)
     for i in range(m):
         for h in range(n_H):
-            for w in range(n_w):
+            for w in range(n_W):
                 for c in range(n_C):
                     vert_start = h * stride
                     vert_end = vert_start + f
